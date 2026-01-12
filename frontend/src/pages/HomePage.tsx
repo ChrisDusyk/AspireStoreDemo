@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import ErrorDisplay from "../components/ErrorDisplay";
 import type { ProductResponse } from "../types/product";
+import { useCart } from "../hooks/useCart";
 
 interface PagedProductResponse {
   products: ProductResponse[];
@@ -15,6 +16,7 @@ interface PagedProductResponse {
 const SKELETON_COUNT = 8;
 
 function HomePage() {
+  const { addItem } = useCart();
   const [products, setProducts] = useState<ProductResponse[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [page, setPage] = useState(1);
@@ -102,29 +104,39 @@ function HomePage() {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {products.map((product) => (
-              <Link
+              <div
                 key={product.id}
-                to={`/products/${product.id}`}
-                className="bg-white rounded shadow p-6 flex flex-col justify-between hover:ring-2 hover:ring-blue-400 transition cursor-pointer"
-                tabIndex={0}
-                aria-label={`View details for ${
-                  product.name ?? "Unnamed Product"
-                }`}
+                className="bg-white rounded shadow p-6 flex flex-col justify-between hover:ring-2 hover:ring-blue-400 transition"
               >
-                <div>
-                  <h2 className="text-xl font-semibold mb-2">
-                    {product.name ?? "Unnamed Product"}
-                  </h2>
-                  <p className="text-gray-600 mb-4">
-                    {product.description ?? "No description."}
-                  </p>
-                </div>
-                <div className="text-lg font-bold text-blue-600">
-                  {product.price !== null
-                    ? `$${product.price.toFixed(2)}`
-                    : "Price not available"}
-                </div>
-              </Link>
+                <Link
+                  to={`/products/${product.id}`}
+                  className="flex flex-col flex-grow cursor-pointer"
+                  tabIndex={0}
+                  aria-label={`View details for ${
+                    product.name ?? "Unnamed Product"
+                  }`}
+                >
+                  <div>
+                    <h2 className="text-xl font-semibold mb-2">
+                      {product.name ?? "Unnamed Product"}
+                    </h2>
+                    <p className="text-gray-600 mb-4">
+                      {product.description ?? "No description."}
+                    </p>
+                  </div>
+                  <div className="text-lg font-bold text-blue-600 mb-4">
+                    {product.price !== null
+                      ? `$${product.price.toFixed(2)}`
+                      : "Price not available"}
+                  </div>
+                </Link>
+                <button
+                  onClick={() => addItem(product)}
+                  className="w-full px-4 py-2 rounded bg-green-500 text-white font-semibold hover:bg-green-600 transition-colors"
+                >
+                  Add to Cart
+                </button>
+              </div>
             ))}
           </div>
           <div className="flex justify-center items-center mt-8 space-x-2">

@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "react-oidc-context";
+import { useHasRole } from "../hooks/useHasRole";
+import { CartButton } from "./CartButton";
 
 // Seattle Seahawks colors
 const NAVY = "#002244";
@@ -9,6 +12,18 @@ const WOLF_GREY = "#A5ACAF";
 const WHITE = "#FFFFFF";
 
 function Layout({ children }: { children: React.ReactNode }) {
+  const auth = useAuth();
+  const isAdmin = useHasRole("admin");
+  const isUser = useHasRole("user");
+
+  const handleLogin = () => {
+    auth.signinRedirect();
+  };
+
+  const handleLogout = () => {
+    auth.signoutRedirect();
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <nav
@@ -37,13 +52,54 @@ function Layout({ children }: { children: React.ReactNode }) {
             >
               About
             </Link>
-            <button
-              className={`ml-4 px-4 py-2 rounded bg-[${ACTION_GREEN}] text-[${NAVY}] font-semibold hover:bg-white hover:text-[${NAVY}] transition-colors`}
-              style={{ backgroundColor: ACTION_GREEN, color: NAVY }}
-              disabled
-            >
-              Login
-            </button>
+
+            {auth.isAuthenticated && (
+              <>
+                {isUser && (
+                  <Link
+                    to="/orders"
+                    className={`text-white hover:text-[${ACTION_GREEN}] font-medium transition-colors`}
+                  >
+                    My Orders
+                  </Link>
+                )}
+                {isAdmin && (
+                  <Link
+                    to="/admin/products"
+                    className={`text-white hover:text-[${ACTION_GREEN}] font-medium transition-colors`}
+                  >
+                    Manage Products
+                  </Link>
+                )}
+              </>
+            )}
+
+            <CartButton />
+
+            {auth.isAuthenticated ? (
+              <div className="flex items-center space-x-4">
+                <span className="text-white text-sm">
+                  {auth.user?.profile.email ||
+                    auth.user?.profile.name ||
+                    "User"}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className={`px-4 py-2 rounded bg-[${ACTION_GREEN}] text-[${NAVY}] font-semibold hover:bg-white hover:text-[${NAVY}] transition-colors`}
+                  style={{ backgroundColor: ACTION_GREEN, color: NAVY }}
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleLogin}
+                className={`ml-4 px-4 py-2 rounded bg-[${ACTION_GREEN}] text-[${NAVY}] font-semibold hover:bg-white hover:text-[${NAVY}] transition-colors`}
+                style={{ backgroundColor: ACTION_GREEN, color: NAVY }}
+              >
+                Login
+              </button>
+            )}
           </div>
         </div>
       </nav>
