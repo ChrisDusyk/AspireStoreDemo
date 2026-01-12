@@ -11,6 +11,12 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.JavaScript" />
+    <PackageReference Include="Aspire.Hosting.Keycloak" />
     <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="copilotdemoapp-realm.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>
