@@ -211,7 +211,7 @@ orders.MapPost("/", async (
 		request.ShippingAddress,
 		request.ShippingCity,
 		request.ShippingState,
-		request.ShippingZip,
+		request.ShippingPostalCode,
 		request.LineItems
 	);
 
@@ -250,7 +250,7 @@ record OrderCreateRequest(
 	string ShippingAddress,
 	string ShippingCity,
 	string ShippingState,
-	string ShippingZip,
+	string ShippingPostalCode,
 	List<CreateOrderLineItemDto> LineItems
 );
 

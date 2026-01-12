@@ -31,7 +31,7 @@ public class Order
 	public string ShippingAddress { get; set; } = string.Empty;
 	public string ShippingCity { get; set; } = string.Empty;
 	public string ShippingState { get; set; } = string.Empty;
-	public string ShippingZip { get; set; } = string.Empty;
+	public string ShippingPostalCode { get; set; } = string.Empty;
 	public DateTime OrderDate { get; set; }
 	public OrderStatus Status { get; set; }
 	public decimal TotalAmount { get; set; }

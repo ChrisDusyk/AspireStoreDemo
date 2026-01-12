@@ -17,8 +17,8 @@ public class CreateOrderCommandHandler(AppDbContext context) : ICommandHandler<C
 		if (string.IsNullOrWhiteSpace(command.ShippingState))
 			return Result<Order>.Failure(new Error("ShippingState", "Shipping state is required"));
 
-		if (string.IsNullOrWhiteSpace(command.ShippingZip))
-			return Result<Order>.Failure(new Error("ShippingZip", "Shipping ZIP code is required"));
+		if (string.IsNullOrWhiteSpace(command.ShippingPostalCode))
+			return Result<Order>.Failure(new Error("ShippingPostalCode", "Shipping postal code is required"));
 
 		if (command.LineItems == null || !command.LineItems.Any())
 			return Result<Order>.Failure(new Error("LineItems", "Order must contain at least one item"));
@@ -33,7 +33,7 @@ public class CreateOrderCommandHandler(AppDbContext context) : ICommandHandler<C
 			ShippingAddress = command.ShippingAddress,
 			ShippingCity = command.ShippingCity,
 			ShippingState = command.ShippingState,
-			ShippingZip = command.ShippingZip,
+			ShippingPostalCode = command.ShippingPostalCode,
 			OrderDate = DateTime.UtcNow,
 			Status = OrderStatus.Pending,
 			TotalAmount = totalAmount,
@@ -57,7 +57,7 @@ public class CreateOrderCommandHandler(AppDbContext context) : ICommandHandler<C
 			orderEntity.ShippingAddress,
 			orderEntity.ShippingCity,
 			orderEntity.ShippingState,
-			orderEntity.ShippingZip,
+			orderEntity.ShippingPostalCode,
 			orderEntity.OrderDate,
 			orderEntity.Status,
 			orderEntity.TotalAmount,

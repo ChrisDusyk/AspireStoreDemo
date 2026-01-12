@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "react-oidc-context";
 import { useCartContext } from "../contexts/CartContext";
 import type { ProductResponse } from "../types/product";
 
@@ -12,6 +13,8 @@ interface CartItemWithProduct {
 }
 
 export function CartPage() {
+  const navigate = useNavigate();
+  const auth = useAuth();
   const { items, updateQuantity, removeItem, clearCart } = useCartContext();
   const [cartItems, setCartItems] = useState<CartItemWithProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -271,19 +274,26 @@ export function CartPage() {
               Clear Cart
             </button>
             <button
+              onClick={() => {
+                if (!auth.isAuthenticated) {
+                  auth.signinRedirect();
+                } else {
+                  navigate("/checkout");
+                }
+              }}
               disabled={hasUnavailableProducts}
               className={`px-6 py-3 rounded-lg transition-colors ${
                 hasUnavailableProducts
                   ? "bg-gray-400 text-white cursor-not-allowed"
-                  : "bg-gray-400 text-white cursor-not-allowed"
+                  : "bg-blue-600 text-white hover:bg-blue-700"
               }`}
               title={
                 hasUnavailableProducts
                   ? "Remove unavailable products before checkout"
-                  : "Checkout functionality coming soon"
+                  : undefined
               }
             >
-              Go to Checkout
+              {auth.isAuthenticated ? "Go to Checkout" : "Login to Checkout"}
             </button>
           </div>
         </div>

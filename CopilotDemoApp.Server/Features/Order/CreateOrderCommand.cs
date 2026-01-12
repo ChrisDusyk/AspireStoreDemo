@@ -8,7 +8,7 @@ public record CreateOrderCommand(
 	string ShippingAddress,
 	string ShippingCity,
 	string ShippingState,
-	string ShippingZip,
+	string ShippingPostalCode,
 	List<CreateOrderLineItemDto> LineItems
 ) : ICommand<Order>;
 

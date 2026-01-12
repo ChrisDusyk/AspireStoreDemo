@@ -9,7 +9,7 @@ public sealed record Order(
 	string ShippingAddress,
 	string ShippingCity,
 	string ShippingState,
-	string ShippingZip,
+	string ShippingPostalCode,
 	DateTime OrderDate,
 	OrderStatus Status,
 	decimal TotalAmount,

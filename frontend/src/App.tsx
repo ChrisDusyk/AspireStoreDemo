@@ -7,6 +7,7 @@ import AdminProductsPage from "./pages/AdminProductsPage";
 import OrdersPage from "./pages/OrdersPage";
 import UnauthorizedPage from "./pages/UnauthorizedPage";
 import { CartPage } from "./pages/CartPage";
+import CheckoutPage from "./pages/CheckoutPage";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { CartProvider } from "./contexts/CartContext";
@@ -19,6 +20,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/products/:id" element={<ProductDetailsPage />} />
           <Route
             path="/admin/products"
