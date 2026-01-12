@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "react-oidc-context";
@@ -8,8 +7,6 @@ import { CartButton } from "./CartButton";
 // Seattle Seahawks colors
 const NAVY = "#002244";
 const ACTION_GREEN = "#39FF14";
-const WOLF_GREY = "#A5ACAF";
-const WHITE = "#FFFFFF";
 
 function Layout({ children }: { children: React.ReactNode }) {
   const auth = useAuth();

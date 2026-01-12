@@ -9,34 +9,37 @@ import UnauthorizedPage from "./pages/UnauthorizedPage";
 import { CartPage } from "./pages/CartPage";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { CartProvider } from "./contexts/CartContext";
 
 function App() {
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/cart" element={<CartPage />} />
-        <Route path="/products/:id" element={<ProductDetailsPage />} />
-        <Route
-          path="/admin/products"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <AdminProductsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/orders"
-          element={
-            <ProtectedRoute>
-              <OrdersPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/unauthorized" element={<UnauthorizedPage />} />
-      </Routes>
-    </Layout>
+    <CartProvider>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/products/:id" element={<ProductDetailsPage />} />
+          <Route
+            path="/admin/products"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminProductsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <OrdersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/unauthorized" element={<UnauthorizedPage />} />
+        </Routes>
+      </Layout>
+    </CartProvider>
   );
 }
 

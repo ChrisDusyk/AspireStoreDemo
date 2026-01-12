@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import ErrorDisplay from "../components/ErrorDisplay";
 import type { ProductResponse } from "../types/product";
-import { useCart } from "../hooks/useCart";
+import { useCartContext } from "../contexts/CartContext";
 
 interface PagedProductResponse {
   products: ProductResponse[];
@@ -16,7 +16,7 @@ interface PagedProductResponse {
 const SKELETON_COUNT = 8;
 
 function HomePage() {
-  const { addItem } = useCart();
+  const { addItem } = useCartContext();
   const [products, setProducts] = useState<ProductResponse[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [page, setPage] = useState(1);
@@ -131,7 +131,7 @@ function HomePage() {
                   </div>
                 </Link>
                 <button
-                  onClick={() => addItem(product)}
+                  onClick={() => addItem(product.id)}
                   className="w-full px-4 py-2 rounded bg-green-500 text-white font-semibold hover:bg-green-600 transition-colors"
                 >
                   Add to Cart

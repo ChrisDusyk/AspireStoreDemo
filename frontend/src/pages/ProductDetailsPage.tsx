@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 
 import type { ProductResponse } from "../types/product";
-import { useCart } from "../hooks/useCart";
+import { useCartContext } from "../contexts/CartContext";
 
 function ProductDetailsPage() {
   const { id } = useParams<{ id: string }>();
-  const { addItem } = useCart();
+  const { addItem } = useCartContext();
   const [product, setProduct] = useState<ProductResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -107,7 +107,7 @@ function ProductDetailsPage() {
       <button
         className="px-6 py-2 rounded bg-green-500 text-white font-semibold hover:bg-green-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
         onClick={() => {
-          addItem(product);
+          addItem(product.id);
           setAddedToCart(true);
           setTimeout(() => setAddedToCart(false), 2000);
         }}

@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
-import { useCart } from "../hooks/useCart";
+import { useCartContext } from "../contexts/CartContext";
 
 export function CartButton() {
-  const { itemCount } = useCart();
+  const { itemCount } = useCartContext();
 
   return (
     <Link
