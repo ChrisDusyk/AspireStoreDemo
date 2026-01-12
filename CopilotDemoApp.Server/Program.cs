@@ -28,7 +28,42 @@ builder.Services
 		}
 
 		// Map Keycloak's realm_access.roles to ASP.NET Core's role claims
-		options.TokenValidationParameters.RoleClaimType = "realm_access.roles";
+		options.MapInboundClaims = false; // Use original claim names from the token
+		options.TokenValidationParameters.RoleClaimType = "role";
+		options.TokenValidationParameters.NameClaimType = "preferred_username";
+
+		// Extract roles from Keycloak's nested realm_access structure
+		options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+		{
+			OnTokenValidated = context =>
+			{
+				if (context.Principal?.Identity is not System.Security.Claims.ClaimsIdentity identity)
+					return Task.CompletedTask;
+
+				// Extract roles from realm_access.roles
+				var realmAccessClaim = context.Principal.FindFirst("realm_access");
+				if (realmAccessClaim?.Value != null)
+				{
+					try
+					{
+						var realmAccess = System.Text.Json.JsonDocument.Parse(realmAccessClaim.Value);
+						if (realmAccess.RootElement.TryGetProperty("roles", out var rolesElement))
+						{
+							foreach (var role in rolesElement.EnumerateArray())
+							{
+								identity.AddClaim(new System.Security.Claims.Claim("role", role.GetString() ?? ""));
+							}
+						}
+					}
+					catch
+					{
+						// If parsing fails, continue without roles
+					}
+				}
+
+				return Task.CompletedTask;
+			}
+		};
 	});
 
 // Add authorization policies
