@@ -9,6 +9,34 @@ var builder = WebApplication.CreateBuilder(args);
 // Add service defaults & Aspire client integrations.
 builder.AddServiceDefaults();
 
+// Add Keycloak authentication
+builder.Services
+	.AddAuthentication()
+	.AddKeycloakJwtBearer("keycloak", realm: "copilotdemoapp", options =>
+	{
+		options.Audience = "copilotdemoapp-api";
+
+		if (builder.Environment.IsDevelopment())
+		{
+			options.RequireHttpsMetadata = false;
+			// Accept tokens from both internal (keycloak) and external (localhost) URLs
+			options.TokenValidationParameters.ValidIssuers = new[]
+			{
+				"http://keycloak:8080/realms/copilotdemoapp",
+				"http://localhost:8080/realms/copilotdemoapp"
+			};
+		}
+
+		// Map Keycloak's realm_access.roles to ASP.NET Core's role claims
+		options.TokenValidationParameters.RoleClaimType = "realm_access.roles";
+	});
+
+// Add authorization policies
+builder.Services.AddAuthorizationBuilder()
+	.AddPolicy("AdminOnly", policy =>
+		policy.RequireRole("admin"))
+	.AddPolicy("UserAccess", policy =>
+		policy.RequireRole("admin", "user")); // Admin can also access user features
 
 // Add services to the container.
 builder.Services.AddProblemDetails();
@@ -26,6 +54,8 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
 
+app.UseAuthentication();
+app.UseAuthorization();
 
 if (app.Environment.IsDevelopment())
 {
@@ -58,7 +88,8 @@ products.MapGet("/", async (
 		error => Results.Problem(detail: error.Message, statusCode: 500)
 	);
 })
-.WithName("GetProducts");
+.WithName("GetProducts")
+.AllowAnonymous();
 
 products.MapGet("/{id:guid}", async (
 	Guid id,
@@ -74,7 +105,62 @@ products.MapGet("/{id:guid}", async (
 		error => Results.Problem(detail: error.Message, statusCode: 500)
 	);
 })
-.WithName("GetProductById");
+.WithName("GetProductById")
+.AllowAnonymous();
+
+// Admin endpoints for product CRUD operations
+var adminProducts = api.MapGroup("/admin/products")
+	.RequireAuthorization("AdminOnly");
+
+adminProducts.MapPost("/", (ProductCreateRequest request) =>
+{
+	// TODO: Implement product creation
+	return Results.Created($"/api/products/{Guid.NewGuid()}", new { message = "Product created (placeholder)" });
+})
+.WithName("CreateProduct");
+
+adminProducts.MapPut("/{id:guid}", (Guid id, ProductUpdateRequest request) =>
+{
+	// TODO: Implement product update
+	return Results.Ok(new { message = $"Product {id} updated (placeholder)" });
+})
+.WithName("UpdateProduct");
+
+adminProducts.MapDelete("/{id:guid}", (Guid id) =>
+{
+	// TODO: Implement product deletion
+	return Results.NoContent();
+})
+.WithName("DeleteProduct");
+
+// User endpoints for orders
+var orders = api.MapGroup("/orders")
+	.RequireAuthorization("UserAccess");
+
+orders.MapGet("/", () =>
+{
+	// TODO: Implement get user orders
+	return Results.Ok(new[]
+	{
+		new { id = Guid.NewGuid(), date = DateTime.UtcNow, total = 99.99m, status = "Completed" },
+		new { id = Guid.NewGuid(), date = DateTime.UtcNow.AddDays(-7), total = 149.99m, status = "Shipped" }
+	});
+})
+.WithName("GetMyOrders");
+
+orders.MapGet("/{id:guid}", (Guid id) =>
+{
+	// TODO: Implement get order by id
+	return Results.Ok(new { id, date = DateTime.UtcNow, total = 99.99m, status = "Completed", items = new[] { new { productId = Guid.NewGuid(), name = "Sample Product", quantity = 1, price = 99.99m } } });
+})
+.WithName("GetOrderById");
+
+orders.MapPost("/", (OrderCreateRequest request) =>
+{
+	// TODO: Implement order creation
+	return Results.Created($"/api/orders/{Guid.NewGuid()}", new { message = "Order created (placeholder)" });
+})
+.WithName("CreateOrder");
 
 api.MapGet("weatherforecast", () =>
 {
@@ -95,6 +181,11 @@ app.MapDefaultEndpoints();
 app.UseFileServer();
 
 app.Run();
+
+// Request/Response DTOs for new endpoints
+record ProductCreateRequest(string Name, string Description, decimal Price, bool IsActive);
+record ProductUpdateRequest(string Name, string Description, decimal Price, bool IsActive);
+record OrderCreateRequest(Guid[] ProductIds);
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
