@@ -1,8 +1,10 @@
 using CopilotDemoApp.Server;
 using CopilotDemoApp.Server.Features.Product;
+using CopilotDemoApp.Server.Features.Order;
 using CopilotDemoApp.Server.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -172,28 +174,52 @@ adminProducts.MapDelete("/{id:guid}", (Guid id) =>
 var orders = api.MapGroup("/orders")
 	.RequireAuthorization("UserAccess");
 
-orders.MapGet("/", () =>
+orders.MapGet("/", async (
+	ClaimsPrincipal user,
+	[FromServices] IQueryHandler<GetUserOrdersQuery, List<Order>> handler
+) =>
 {
-	// TODO: Implement get user orders
-	return Results.Ok(new[]
-	{
-		new { id = Guid.NewGuid(), date = DateTime.UtcNow, total = 99.99m, status = "Completed" },
-		new { id = Guid.NewGuid(), date = DateTime.UtcNow.AddDays(-7), total = 149.99m, status = "Shipped" }
-	});
+	var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+		?? user.FindFirst("sub")?.Value
+		?? "";
+
+	var result = await handler.HandleAsync(new GetUserOrdersQuery(userId));
+	return result.Match(
+		orderList => Results.Ok(orderList),
+		error => Results.Problem(detail: error.Message, statusCode: 500)
+	);
 })
 .WithName("GetMyOrders");
 
-orders.MapGet("/{id:guid}", (Guid id) =>
+orders.MapPost("/", async (
+	ClaimsPrincipal user,
+	OrderCreateRequest request,
+	[FromServices] ICommandHandler<CreateOrderCommand, Order> handler
+) =>
 {
-	// TODO: Implement get order by id
-	return Results.Ok(new { id, date = DateTime.UtcNow, total = 99.99m, status = "Completed", items = new[] { new { productId = Guid.NewGuid(), name = "Sample Product", quantity = 1, price = 99.99m } } });
-})
-.WithName("GetOrderById");
+	var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+		?? user.FindFirst("sub")?.Value
+		?? "";
 
-orders.MapPost("/", (OrderCreateRequest request) =>
-{
-	// TODO: Implement order creation
-	return Results.Created($"/api/orders/{Guid.NewGuid()}", new { message = "Order created (placeholder)" });
+	var userEmail = user.FindFirst(ClaimTypes.Email)?.Value
+		?? user.FindFirst("email")?.Value
+		?? "";
+
+	var command = new CreateOrderCommand(
+		userId,
+		userEmail,
+		request.ShippingAddress,
+		request.ShippingCity,
+		request.ShippingState,
+		request.ShippingZip,
+		request.LineItems
+	);
+
+	var result = await handler.HandleAsync(command);
+	return result.Match(
+		order => Results.Ok(order),
+		error => Results.BadRequest(new { error = error.Message })
+	);
 })
 .WithName("CreateOrder");
 
@@ -220,7 +246,13 @@ app.Run();
 // Request/Response DTOs for new endpoints
 record ProductCreateRequest(string Name, string Description, decimal Price, bool IsActive);
 record ProductUpdateRequest(string Name, string Description, decimal Price, bool IsActive);
-record OrderCreateRequest(Guid[] ProductIds);
+record OrderCreateRequest(
+	string ShippingAddress,
+	string ShippingCity,
+	string ShippingState,
+	string ShippingZip,
+	List<CreateOrderLineItemDto> LineItems
+);
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
