@@ -12,7 +12,7 @@ function CheckoutPage() {
 
   const [shippingAddress, setShippingAddress] = useState("");
   const [shippingCity, setShippingCity] = useState("");
-  const [shippingState, setShippingState] = useState("");
+  const [shippingProvince, setShippingProvince] = useState("");
   const [shippingPostalCode, setShippingPostalCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -87,7 +87,7 @@ function CheckoutPage() {
       const request: CreateOrderRequest = {
         shippingAddress,
         shippingCity,
-        shippingState,
+        shippingState: shippingProvince,
         shippingPostalCode,
         lineItems,
       };
@@ -211,26 +211,26 @@ function CheckoutPage() {
                   onChange={(e) => setShippingCity(e.target.value)}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  placeholder="Seattle"
+                  placeholder="Toronto"
                 />
               </div>
 
               <div>
                 <label
-                  htmlFor="state"
+                  htmlFor="province"
                   className="block text-sm font-medium mb-1"
                 >
-                  State
+                  Province
                 </label>
                 <input
                   type="text"
-                  id="state"
-                  value={shippingState}
-                  onChange={(e) => setShippingState(e.target.value)}
+                  id="province"
+                  value={shippingProvince}
+                  onChange={(e) => setShippingProvince(e.target.value)}
                   required
                   maxLength={2}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  placeholder="WA"
+                  placeholder="ON"
                 />
               </div>
             </div>
