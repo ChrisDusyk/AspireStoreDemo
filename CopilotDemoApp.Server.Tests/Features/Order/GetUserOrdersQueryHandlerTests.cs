@@ -22,7 +22,7 @@ public class GetUserOrdersQueryHandlerTests
 			UserEmail = "test@example.com",
 			ShippingAddress = "123 Main St",
 			ShippingCity = "Toronto",
-			ShippingState = "ON",
+			ShippingProvince = "ON",
 			ShippingPostalCode = "M5H 2N2",
 			OrderDate = DateTime.UtcNow.AddDays(-2),
 			Status = OrderStatus.Delivered,
@@ -40,7 +40,7 @@ public class GetUserOrdersQueryHandlerTests
 			UserEmail = "test@example.com",
 			ShippingAddress = "456 Oak Ave",
 			ShippingCity = "Vancouver",
-			ShippingState = "BC",
+			ShippingProvince = "BC",
 			ShippingPostalCode = "V6B 1A1",
 			OrderDate = DateTime.UtcNow.AddDays(-1),
 			Status = OrderStatus.Pending,
@@ -105,7 +105,7 @@ public class GetUserOrdersQueryHandlerTests
 			UserEmail = "user1@example.com",
 			ShippingAddress = "123 Main St",
 			ShippingCity = "Toronto",
-			ShippingState = "ON",
+			ShippingProvince = "ON",
 			ShippingPostalCode = "M5H 2N2",
 			OrderDate = DateTime.UtcNow,
 			Status = OrderStatus.Pending,
@@ -123,7 +123,7 @@ public class GetUserOrdersQueryHandlerTests
 			UserEmail = "user2@example.com",
 			ShippingAddress = "456 Oak Ave",
 			ShippingCity = "Vancouver",
-			ShippingState = "BC",
+			ShippingProvince = "BC",
 			ShippingPostalCode = "V6B 1A1",
 			OrderDate = DateTime.UtcNow,
 			Status = OrderStatus.Processing,
@@ -166,7 +166,7 @@ public class GetUserOrdersQueryHandlerTests
 			UserEmail = "test@example.com",
 			ShippingAddress = "123 Main St",
 			ShippingCity = "Toronto",
-			ShippingState = "ON",
+			ShippingProvince = "ON",
 			ShippingPostalCode = "M5H 2N2",
 			OrderDate = DateTime.UtcNow,
 			Status = OrderStatus.Pending,
@@ -211,7 +211,7 @@ public class GetUserOrdersQueryHandlerTests
 			UserEmail = "test@example.com",
 			ShippingAddress = "123 Main St",
 			ShippingCity = "Toronto",
-			ShippingState = "ON",
+			ShippingProvince = "ON",
 			ShippingPostalCode = "M5H 2N2",
 			OrderDate = DateTime.UtcNow.AddDays(-10),
 			Status = OrderStatus.Delivered,
@@ -229,7 +229,7 @@ public class GetUserOrdersQueryHandlerTests
 			UserEmail = "test@example.com",
 			ShippingAddress = "456 Oak Ave",
 			ShippingCity = "Vancouver",
-			ShippingState = "BC",
+			ShippingProvince = "BC",
 			ShippingPostalCode = "V6B 1A1",
 			OrderDate = DateTime.UtcNow.AddHours(-1),
 			Status = OrderStatus.Pending,
@@ -274,7 +274,7 @@ public class GetUserOrdersQueryHandlerTests
 			UserEmail = "user456@example.com",
 			ShippingAddress = "789 Elm St",
 			ShippingCity = "Calgary",
-			ShippingState = "AB",
+			ShippingProvince = "AB",
 			ShippingPostalCode = "T2P 0A1",
 			OrderDate = orderDate,
 			Status = OrderStatus.Shipped,
@@ -299,7 +299,7 @@ public class GetUserOrdersQueryHandlerTests
 		Assert.Equal("user456@example.com", returnedOrder.UserEmail);
 		Assert.Equal("789 Elm St", returnedOrder.ShippingAddress);
 		Assert.Equal("Calgary", returnedOrder.ShippingCity);
-		Assert.Equal("AB", returnedOrder.ShippingState);
+		Assert.Equal("AB", returnedOrder.ShippingProvince);
 		Assert.Equal("T2P 0A1", returnedOrder.ShippingPostalCode);
 		Assert.Equal(orderDate, returnedOrder.OrderDate);
 		Assert.Equal(OrderStatus.Shipped, returnedOrder.Status);

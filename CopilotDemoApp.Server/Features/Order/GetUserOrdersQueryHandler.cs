@@ -20,7 +20,7 @@ public class GetUserOrdersQueryHandler(AppDbContext context) : IQueryHandler<Get
 			o.UserEmail,
 			o.ShippingAddress,
 			o.ShippingCity,
-			o.ShippingState,
+			o.ShippingProvince,
 			o.ShippingPostalCode,
 			o.OrderDate,
 			o.Status,

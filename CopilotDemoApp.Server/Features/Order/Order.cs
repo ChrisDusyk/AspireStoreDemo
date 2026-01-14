@@ -8,7 +8,7 @@ public sealed record Order(
 	string UserEmail,
 	string ShippingAddress,
 	string ShippingCity,
-	string ShippingState,
+	string ShippingProvince,
 	string ShippingPostalCode,
 	DateTime OrderDate,
 	OrderStatus Status,

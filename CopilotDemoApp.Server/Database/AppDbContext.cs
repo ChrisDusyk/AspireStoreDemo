@@ -30,7 +30,7 @@ public class Order
 	public string UserEmail { get; set; } = string.Empty;
 	public string ShippingAddress { get; set; } = string.Empty;
 	public string ShippingCity { get; set; } = string.Empty;
-	public string ShippingState { get; set; } = string.Empty;
+	public string ShippingProvince { get; set; } = string.Empty;
 	public string ShippingPostalCode { get; set; } = string.Empty;
 	public DateTime OrderDate { get; set; }
 	public OrderStatus Status { get; set; }

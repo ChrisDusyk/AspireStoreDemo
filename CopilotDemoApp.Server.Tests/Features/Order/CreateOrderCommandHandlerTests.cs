@@ -21,7 +21,7 @@ public class CreateOrderCommandHandlerTests
 			UserEmail: "test@example.com",
 			ShippingAddress: "123 Main St",
 			ShippingCity: "Toronto",
-			ShippingState: "ON",
+			ShippingProvince: "ON",
 			ShippingPostalCode: "M5H 2N2",
 			LineItems: new List<CreateOrderLineItemDto>
 			{
@@ -41,7 +41,7 @@ public class CreateOrderCommandHandlerTests
 		Assert.Equal("test@example.com", order.UserEmail);
 		Assert.Equal("123 Main St", order.ShippingAddress);
 		Assert.Equal("Toronto", order.ShippingCity);
-		Assert.Equal("ON", order.ShippingState);
+		Assert.Equal("ON", order.ShippingProvince);
 		Assert.Equal("M5H 2N2", order.ShippingPostalCode);
 		Assert.Equal(OrderStatus.Pending, order.Status);
 		Assert.Equal(109.97m, order.TotalAmount);
@@ -69,7 +69,7 @@ public class CreateOrderCommandHandlerTests
 			UserEmail: "test@example.com",
 			ShippingAddress: "",
 			ShippingCity: "Toronto",
-			ShippingState: "ON",
+			ShippingProvince: "ON",
 			ShippingPostalCode: "M5H 2N2",
 			LineItems: new List<CreateOrderLineItemDto>
 			{
@@ -101,7 +101,7 @@ public class CreateOrderCommandHandlerTests
 			UserEmail: "test@example.com",
 			ShippingAddress: "123 Main St",
 			ShippingCity: "",
-			ShippingState: "ON",
+			ShippingProvince: "ON",
 			ShippingPostalCode: "M5H 2N2",
 			LineItems: new List<CreateOrderLineItemDto>
 			{
@@ -119,7 +119,7 @@ public class CreateOrderCommandHandlerTests
 	}
 
 	[Fact]
-	public async Task Returns_Failure_When_ShippingState_Missing()
+	public async Task Returns_Failure_When_ShippingProvince_Missing()
 	{
 		// Arrange
 		var options = new DbContextOptionsBuilder<AppDbContext>()
@@ -133,7 +133,7 @@ public class CreateOrderCommandHandlerTests
 			UserEmail: "test@example.com",
 			ShippingAddress: "123 Main St",
 			ShippingCity: "Toronto",
-			ShippingState: "",
+			ShippingProvince: "",
 			ShippingPostalCode: "M5H 2N2",
 			LineItems: new List<CreateOrderLineItemDto>
 			{
@@ -146,8 +146,8 @@ public class CreateOrderCommandHandlerTests
 
 		// Assert
 		Assert.False(result.IsSuccess);
-		Assert.Equal("ShippingState", result.Error!.Code);
-		Assert.Equal("Shipping state is required", result.Error!.Message);
+		Assert.Equal("ShippingProvince", result.Error!.Code);
+		Assert.Equal("Shipping province is required", result.Error!.Message);
 	}
 
 	[Fact]
@@ -165,7 +165,7 @@ public class CreateOrderCommandHandlerTests
 			UserEmail: "test@example.com",
 			ShippingAddress: "123 Main St",
 			ShippingCity: "Toronto",
-			ShippingState: "ON",
+			ShippingProvince: "ON",
 			ShippingPostalCode: "",
 			LineItems: new List<CreateOrderLineItemDto>
 			{
@@ -197,7 +197,7 @@ public class CreateOrderCommandHandlerTests
 			UserEmail: "test@example.com",
 			ShippingAddress: "123 Main St",
 			ShippingCity: "Toronto",
-			ShippingState: "ON",
+			ShippingProvince: "ON",
 			ShippingPostalCode: "M5H 2N2",
 			LineItems: new List<CreateOrderLineItemDto>()
 		);
@@ -226,7 +226,7 @@ public class CreateOrderCommandHandlerTests
 			UserEmail: "test@example.com",
 			ShippingAddress: "123 Main St",
 			ShippingCity: "Toronto",
-			ShippingState: "ON",
+			ShippingProvince: "ON",
 			ShippingPostalCode: "M5H 2N2",
 			LineItems: new List<CreateOrderLineItemDto>
 			{
@@ -259,7 +259,7 @@ public class CreateOrderCommandHandlerTests
 			UserEmail: "test@example.com",
 			ShippingAddress: "123 Main St",
 			ShippingCity: "Toronto",
-			ShippingState: "ON",
+			ShippingProvince: "ON",
 			ShippingPostalCode: "M5H 2N2",
 			LineItems: new List<CreateOrderLineItemDto>
 			{
@@ -291,7 +291,7 @@ public class CreateOrderCommandHandlerTests
 			UserEmail: "test@example.com",
 			ShippingAddress: "123 Main St",
 			ShippingCity: "Toronto",
-			ShippingState: "ON",
+			ShippingProvince: "ON",
 			ShippingPostalCode: "M5H 2N2",
 			LineItems: new List<CreateOrderLineItemDto>
 			{

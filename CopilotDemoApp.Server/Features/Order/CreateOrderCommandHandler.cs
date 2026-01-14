@@ -14,8 +14,8 @@ public class CreateOrderCommandHandler(AppDbContext context) : ICommandHandler<C
 		if (string.IsNullOrWhiteSpace(command.ShippingCity))
 			return Result<Order>.Failure(new Error("ShippingCity", "Shipping city is required"));
 
-		if (string.IsNullOrWhiteSpace(command.ShippingState))
-			return Result<Order>.Failure(new Error("ShippingState", "Shipping state is required"));
+		if (string.IsNullOrWhiteSpace(command.ShippingProvince))
+			return Result<Order>.Failure(new Error("ShippingProvince", "Shipping province is required"));
 
 		if (string.IsNullOrWhiteSpace(command.ShippingPostalCode))
 			return Result<Order>.Failure(new Error("ShippingPostalCode", "Shipping postal code is required"));
@@ -32,7 +32,7 @@ public class CreateOrderCommandHandler(AppDbContext context) : ICommandHandler<C
 			UserEmail = command.UserEmail,
 			ShippingAddress = command.ShippingAddress,
 			ShippingCity = command.ShippingCity,
-			ShippingState = command.ShippingState,
+			ShippingProvince = command.ShippingProvince,
 			ShippingPostalCode = command.ShippingPostalCode,
 			OrderDate = DateTime.UtcNow,
 			Status = OrderStatus.Pending,
@@ -56,7 +56,7 @@ public class CreateOrderCommandHandler(AppDbContext context) : ICommandHandler<C
 			orderEntity.UserEmail,
 			orderEntity.ShippingAddress,
 			orderEntity.ShippingCity,
-			orderEntity.ShippingState,
+			orderEntity.ShippingProvince,
 			orderEntity.ShippingPostalCode,
 			orderEntity.OrderDate,
 			orderEntity.Status,
