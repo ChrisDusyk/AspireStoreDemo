@@ -54,13 +54,15 @@ function CheckoutPage() {
         setProducts(productMap);
       } catch (err) {
         setError("Failed to load product details");
+        console.error(err);
       } finally {
         setIsLoadingProducts(false);
       }
     };
 
     fetchProducts();
-  }, [auth.isAuthenticated, cartItems, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth.isAuthenticated, cartItems]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
