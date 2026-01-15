@@ -1,0 +1,48 @@
+using CopilotDemoApp.Server.Database;
+using CopilotDemoApp.Server.Shared;
+using Microsoft.EntityFrameworkCore;
+
+namespace CopilotDemoApp.Server.Features.Order;
+
+public class GetUserOrdersQueryHandler(AppDbContext context) : IQueryHandler<GetUserOrdersQuery, List<Order>>
+{
+	public async Task<Result<List<Order>>> HandleAsync(GetUserOrdersQuery query, CancellationToken cancellationToken = default)
+	{
+		try
+		{
+
+			var orderEntities = await context.Orders
+				.Include(o => o.LineItems)
+				.Where(o => o.UserId == query.UserId)
+				.OrderByDescending(o => o.OrderDate)
+				.ToListAsync(cancellationToken);
+
+			var domainOrders = orderEntities.Select(o => new Order(
+				o.Id,
+				o.UserId,
+				o.UserEmail,
+				o.ShippingAddress,
+				o.ShippingCity,
+				o.ShippingProvince,
+				o.ShippingPostalCode,
+				o.OrderDate,
+				o.Status,
+				o.TotalAmount,
+				[.. o.LineItems.Select(li => new OrderLineItem(
+				li.Id,
+				li.OrderId,
+				li.ProductId,
+				li.ProductName,
+				li.ProductPrice,
+				li.Quantity
+			))]
+			)).ToList();
+
+			return Result<List<Order>>.Success(domainOrders);
+		}
+		catch (Exception ex)
+		{
+			return Result<List<Order>>.Failure(new Error(ErrorCodes.DatabaseError, "An error occurred while retrieving user orders", ex));
+		}
+	}
+}

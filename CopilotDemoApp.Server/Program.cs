@@ -1,8 +1,10 @@
 using CopilotDemoApp.Server;
 using CopilotDemoApp.Server.Features.Product;
+using CopilotDemoApp.Server.Features.Order;
 using CopilotDemoApp.Server.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -120,7 +122,14 @@ products.MapGet("/", async (
 	var result = await handler.HandleAsync(new GetProductsQuery(filter));
 	return result.Match(
 		paged => Results.Ok(paged),
-		error => Results.Problem(detail: error.Message, statusCode: 500)
+		error => error switch
+		{
+			Error e when e.Code == ErrorCodes.NotFound => Results.NotFound(),
+			Error e when e.Code == ErrorCodes.Unauthorized => Results.Unauthorized(),
+			Error e when e.Code == ErrorCodes.ValidationFailed => Results.BadRequest(new { error = e.Message }),
+			Error e when e.Code == ErrorCodes.DatabaseError => Results.Problem(detail: error.Message, statusCode: 500),
+			_ => Results.Problem(detail: error.Message, statusCode: 500)
+		}
 	);
 })
 .WithName("GetProducts")
@@ -137,7 +146,14 @@ products.MapGet("/{id:guid}", async (
 			product => Results.Ok(product),
 			() => Results.NotFound()
 		),
-		error => Results.Problem(detail: error.Message, statusCode: 500)
+		error => error switch
+		{
+			Error e when e.Code == ErrorCodes.NotFound => Results.NotFound(),
+			Error e when e.Code == ErrorCodes.Unauthorized => Results.Unauthorized(),
+			Error e when e.Code == ErrorCodes.ValidationFailed => Results.BadRequest(new { error = e.Message }),
+			Error e when e.Code == ErrorCodes.DatabaseError => Results.Problem(detail: error.Message, statusCode: 500),
+			_ => Results.Problem(detail: error.Message, statusCode: 500)
+		}
 	);
 })
 .WithName("GetProductById")
@@ -147,15 +163,29 @@ products.MapGet("/{id:guid}", async (
 var adminProducts = api.MapGroup("/admin/products")
 	.RequireAuthorization("AdminOnly");
 
-adminProducts.MapPost("/", (ProductCreateRequest request) =>
+adminProducts.MapPost("/", (ClaimsPrincipal user, ProductCreateRequest request) =>
 {
+	var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+		?? user.FindFirst("sub")?.Value
+		?? "";
+
+	if (string.IsNullOrEmpty(userId))
+		return Results.Unauthorized();
+
 	// TODO: Implement product creation
 	return Results.Created($"/api/products/{Guid.NewGuid()}", new { message = "Product created (placeholder)" });
 })
 .WithName("CreateProduct");
 
-adminProducts.MapPut("/{id:guid}", (Guid id, ProductUpdateRequest request) =>
+adminProducts.MapPut("/{id:guid}", (ClaimsPrincipal user, Guid id, ProductUpdateRequest request) =>
 {
+	var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+		?? user.FindFirst("sub")?.Value
+		?? "";
+
+	if (string.IsNullOrEmpty(userId))
+		return Results.Unauthorized();
+
 	// TODO: Implement product update
 	return Results.Ok(new { message = $"Product {id} updated (placeholder)" });
 })
@@ -172,28 +202,72 @@ adminProducts.MapDelete("/{id:guid}", (Guid id) =>
 var orders = api.MapGroup("/orders")
 	.RequireAuthorization("UserAccess");
 
-orders.MapGet("/", () =>
+orders.MapGet("/", async (
+	ClaimsPrincipal user,
+	[FromServices] IQueryHandler<GetUserOrdersQuery, List<Order>> handler
+) =>
 {
-	// TODO: Implement get user orders
-	return Results.Ok(new[]
-	{
-		new { id = Guid.NewGuid(), date = DateTime.UtcNow, total = 99.99m, status = "Completed" },
-		new { id = Guid.NewGuid(), date = DateTime.UtcNow.AddDays(-7), total = 149.99m, status = "Shipped" }
-	});
+	var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+		?? user.FindFirst("sub")?.Value
+		?? "";
+
+	if (string.IsNullOrEmpty(userId))
+		return Results.Unauthorized();
+
+	var result = await handler.HandleAsync(new GetUserOrdersQuery(userId));
+	return result.Match(
+		orderList => Results.Ok(orderList),
+		error => error switch
+		{
+			Error e when e.Code == ErrorCodes.NotFound => Results.NotFound(),
+			Error e when e.Code == ErrorCodes.Unauthorized => Results.Unauthorized(),
+			Error e when e.Code == ErrorCodes.ValidationFailed => Results.BadRequest(new { error = e.Message }),
+			Error e when e.Code == ErrorCodes.DatabaseError => Results.Problem(detail: error.Message, statusCode: 500),
+			_ => Results.Problem(detail: error.Message, statusCode: 500)
+		}
+	);
 })
 .WithName("GetMyOrders");
 
-orders.MapGet("/{id:guid}", (Guid id) =>
+orders.MapPost("/", async (
+	ClaimsPrincipal user,
+	OrderCreateRequest request,
+	[FromServices] ICommandHandler<CreateOrderCommand, Order> handler
+) =>
 {
-	// TODO: Implement get order by id
-	return Results.Ok(new { id, date = DateTime.UtcNow, total = 99.99m, status = "Completed", items = new[] { new { productId = Guid.NewGuid(), name = "Sample Product", quantity = 1, price = 99.99m } } });
-})
-.WithName("GetOrderById");
+	var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+		?? user.FindFirst("sub")?.Value
+		?? "";
 
-orders.MapPost("/", (OrderCreateRequest request) =>
-{
-	// TODO: Implement order creation
-	return Results.Created($"/api/orders/{Guid.NewGuid()}", new { message = "Order created (placeholder)" });
+	if (string.IsNullOrEmpty(userId))
+		return Results.Unauthorized();
+
+	var userEmail = user.FindFirst(ClaimTypes.Email)?.Value
+		?? user.FindFirst("email")?.Value
+		?? "";
+
+	var command = new CreateOrderCommand(
+		userId,
+		userEmail,
+		request.ShippingAddress,
+		request.ShippingCity,
+		request.ShippingState,
+		request.ShippingPostalCode,
+		request.LineItems
+	);
+
+	var result = await handler.HandleAsync(command);
+	return result.Match(
+		order => Results.Ok(order),
+		error => error switch
+		{
+			Error e when e.Code == ErrorCodes.NotFound => Results.NotFound(),
+			Error e when e.Code == ErrorCodes.Unauthorized => Results.Unauthorized(),
+			Error e when e.Code == ErrorCodes.ValidationFailed => Results.BadRequest(new { error = e.Message }),
+			Error e when e.Code == ErrorCodes.DatabaseError => Results.Problem(detail: error.Message, statusCode: 500),
+			_ => Results.Problem(detail: error.Message, statusCode: 500)
+		}
+	);
 })
 .WithName("CreateOrder");
 
@@ -220,7 +294,13 @@ app.Run();
 // Request/Response DTOs for new endpoints
 record ProductCreateRequest(string Name, string Description, decimal Price, bool IsActive);
 record ProductUpdateRequest(string Name, string Description, decimal Price, bool IsActive);
-record OrderCreateRequest(Guid[] ProductIds);
+record OrderCreateRequest(
+	string ShippingAddress,
+	string ShippingCity,
+	string ShippingState,
+	string ShippingPostalCode,
+	List<CreateOrderLineItemDto> LineItems
+);
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {

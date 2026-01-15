@@ -28,7 +28,7 @@ public class GetProductByIdQueryHandlerTests
 		await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 		var handler = new GetProductByIdQueryHandler(db);
 		// Act
-		var result = await handler.Handle(new GetProductByIdQuery(entity.Id), CancellationToken.None);
+		var result = await handler.HandleAsync(new GetProductByIdQuery(entity.Id), TestContext.Current.CancellationToken);
 		// Assert
 		Assert.True(result.IsSuccess);
 		var opt = result.Value;
@@ -47,7 +47,7 @@ public class GetProductByIdQueryHandlerTests
 		var db = new CopilotDemoApp.Server.Database.AppDbContext(options);
 		var handler = new GetProductByIdQueryHandler(db);
 		// Act
-		var result = await handler.Handle(new GetProductByIdQuery(Guid.NewGuid()), CancellationToken.None);
+		var result = await handler.HandleAsync(new GetProductByIdQuery(Guid.NewGuid()), TestContext.Current.CancellationToken);
 		// Assert
 		Assert.True(result.IsSuccess);
 		Assert.False(result.Value.HasValue);
