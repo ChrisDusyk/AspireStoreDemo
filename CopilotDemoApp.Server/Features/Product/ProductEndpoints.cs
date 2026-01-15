@@ -1,9 +1,12 @@
-using CopilotDemoApp.Server.DTOs;
 using CopilotDemoApp.Server.Shared;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace CopilotDemoApp.Server.Features.Product;
+
+// Product DTOs
+public record ProductCreateRequest(string Name, string Description, decimal Price, bool IsActive);
+public record ProductUpdateRequest(string Name, string Description, decimal Price, bool IsActive);
 
 public static class ProductEndpoints
 {

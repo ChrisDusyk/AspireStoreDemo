@@ -1,9 +1,17 @@
-using CopilotDemoApp.Server.DTOs;
 using CopilotDemoApp.Server.Shared;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace CopilotDemoApp.Server.Features.Order;
+
+// Order DTOs
+public record OrderCreateRequest(
+	string ShippingAddress,
+	string ShippingCity,
+	string ShippingState,
+	string ShippingPostalCode,
+	List<CreateOrderLineItemDto> LineItems
+);
 
 public static class OrderEndpoints
 {
