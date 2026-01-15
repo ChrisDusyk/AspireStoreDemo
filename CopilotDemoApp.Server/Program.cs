@@ -1,4 +1,5 @@
 using CopilotDemoApp.Server;
+using CopilotDemoApp.Server.DTOs;
 using CopilotDemoApp.Server.Features.Product;
 using CopilotDemoApp.Server.Features.Order;
 using CopilotDemoApp.Server.Shared;
@@ -105,12 +106,7 @@ if (app.Environment.IsDevelopment())
 	app.MapOpenApi();
 }
 
-
-string[] summaries = ["Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"];
-
-
 var api = app.MapGroup("/api");
-
 
 var products = api.MapGroup("/products");
 
@@ -271,38 +267,8 @@ orders.MapPost("/", async (
 })
 .WithName("CreateOrder");
 
-api.MapGet("weatherforecast", () =>
-{
-	var forecast = Enumerable.Range(1, 5).Select(index =>
-		new WeatherForecast
-		(
-			DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-			Random.Shared.Next(-20, 55),
-			summaries[Random.Shared.Next(summaries.Length)]
-		))
-		.ToArray();
-	return forecast;
-})
-.WithName("GetWeatherForecast");
-
 app.MapDefaultEndpoints();
 
 app.UseFileServer();
 
 app.Run();
-
-// Request/Response DTOs for new endpoints
-record ProductCreateRequest(string Name, string Description, decimal Price, bool IsActive);
-record ProductUpdateRequest(string Name, string Description, decimal Price, bool IsActive);
-record OrderCreateRequest(
-	string ShippingAddress,
-	string ShippingCity,
-	string ShippingState,
-	string ShippingPostalCode,
-	List<CreateOrderLineItemDto> LineItems
-);
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-	public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
