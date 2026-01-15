@@ -122,7 +122,14 @@ products.MapGet("/", async (
 	var result = await handler.HandleAsync(new GetProductsQuery(filter));
 	return result.Match(
 		paged => Results.Ok(paged),
-		error => Results.Problem(detail: error.Message, statusCode: 500)
+		error => error switch
+		{
+			Error e when e.Code == ErrorCodes.NotFound => Results.NotFound(),
+			Error e when e.Code == ErrorCodes.Unauthorized => Results.Unauthorized(),
+			Error e when e.Code == ErrorCodes.ValidationFailed => Results.BadRequest(new { error = e.Message }),
+			Error e when e.Code == ErrorCodes.DatabaseError => Results.Problem(detail: error.Message, statusCode: 500),
+			_ => Results.Problem(detail: error.Message, statusCode: 500)
+		}
 	);
 })
 .WithName("GetProducts")
@@ -139,7 +146,14 @@ products.MapGet("/{id:guid}", async (
 			product => Results.Ok(product),
 			() => Results.NotFound()
 		),
-		error => Results.Problem(detail: error.Message, statusCode: 500)
+		error => error switch
+		{
+			Error e when e.Code == ErrorCodes.NotFound => Results.NotFound(),
+			Error e when e.Code == ErrorCodes.Unauthorized => Results.Unauthorized(),
+			Error e when e.Code == ErrorCodes.ValidationFailed => Results.BadRequest(new { error = e.Message }),
+			Error e when e.Code == ErrorCodes.DatabaseError => Results.Problem(detail: error.Message, statusCode: 500),
+			_ => Results.Problem(detail: error.Message, statusCode: 500)
+		}
 	);
 })
 .WithName("GetProductById")
@@ -149,15 +163,29 @@ products.MapGet("/{id:guid}", async (
 var adminProducts = api.MapGroup("/admin/products")
 	.RequireAuthorization("AdminOnly");
 
-adminProducts.MapPost("/", (ProductCreateRequest request) =>
+adminProducts.MapPost("/", (ClaimsPrincipal user, ProductCreateRequest request) =>
 {
+	var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+		?? user.FindFirst("sub")?.Value
+		?? "";
+
+	if (string.IsNullOrEmpty(userId))
+		return Results.Unauthorized();
+
 	// TODO: Implement product creation
 	return Results.Created($"/api/products/{Guid.NewGuid()}", new { message = "Product created (placeholder)" });
 })
 .WithName("CreateProduct");
 
-adminProducts.MapPut("/{id:guid}", (Guid id, ProductUpdateRequest request) =>
+adminProducts.MapPut("/{id:guid}", (ClaimsPrincipal user, Guid id, ProductUpdateRequest request) =>
 {
+	var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+		?? user.FindFirst("sub")?.Value
+		?? "";
+
+	if (string.IsNullOrEmpty(userId))
+		return Results.Unauthorized();
+
 	// TODO: Implement product update
 	return Results.Ok(new { message = $"Product {id} updated (placeholder)" });
 })
@@ -183,10 +211,20 @@ orders.MapGet("/", async (
 		?? user.FindFirst("sub")?.Value
 		?? "";
 
+	if (string.IsNullOrEmpty(userId))
+		return Results.Unauthorized();
+
 	var result = await handler.HandleAsync(new GetUserOrdersQuery(userId));
 	return result.Match(
 		orderList => Results.Ok(orderList),
-		error => Results.Problem(detail: error.Message, statusCode: 500)
+		error => error switch
+		{
+			Error e when e.Code == ErrorCodes.NotFound => Results.NotFound(),
+			Error e when e.Code == ErrorCodes.Unauthorized => Results.Unauthorized(),
+			Error e when e.Code == ErrorCodes.ValidationFailed => Results.BadRequest(new { error = e.Message }),
+			Error e when e.Code == ErrorCodes.DatabaseError => Results.Problem(detail: error.Message, statusCode: 500),
+			_ => Results.Problem(detail: error.Message, statusCode: 500)
+		}
 	);
 })
 .WithName("GetMyOrders");
@@ -200,6 +238,9 @@ orders.MapPost("/", async (
 	var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
 		?? user.FindFirst("sub")?.Value
 		?? "";
+
+	if (string.IsNullOrEmpty(userId))
+		return Results.Unauthorized();
 
 	var userEmail = user.FindFirst(ClaimTypes.Email)?.Value
 		?? user.FindFirst("email")?.Value
@@ -218,7 +259,14 @@ orders.MapPost("/", async (
 	var result = await handler.HandleAsync(command);
 	return result.Match(
 		order => Results.Ok(order),
-		error => Results.BadRequest(new { error = error.Message })
+		error => error switch
+		{
+			Error e when e.Code == ErrorCodes.NotFound => Results.NotFound(),
+			Error e when e.Code == ErrorCodes.Unauthorized => Results.Unauthorized(),
+			Error e when e.Code == ErrorCodes.ValidationFailed => Results.BadRequest(new { error = e.Message }),
+			Error e when e.Code == ErrorCodes.DatabaseError => Results.Problem(detail: error.Message, statusCode: 500),
+			_ => Results.Problem(detail: error.Message, statusCode: 500)
+		}
 	);
 })
 .WithName("CreateOrder");

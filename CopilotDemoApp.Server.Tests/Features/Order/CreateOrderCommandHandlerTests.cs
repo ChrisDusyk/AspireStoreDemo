@@ -82,7 +82,7 @@ public class CreateOrderCommandHandlerTests
 
 		// Assert
 		Assert.False(result.IsSuccess);
-		Assert.Equal("ShippingAddress", result.Error!.Code);
+		Assert.Equal("ValidationFailed", result.Error!.Code);
 		Assert.Equal("Shipping address is required", result.Error!.Message);
 	}
 
@@ -114,7 +114,7 @@ public class CreateOrderCommandHandlerTests
 
 		// Assert
 		Assert.False(result.IsSuccess);
-		Assert.Equal("ShippingCity", result.Error!.Code);
+		Assert.Equal("ValidationFailed", result.Error!.Code);
 		Assert.Equal("Shipping city is required", result.Error!.Message);
 	}
 
@@ -146,7 +146,7 @@ public class CreateOrderCommandHandlerTests
 
 		// Assert
 		Assert.False(result.IsSuccess);
-		Assert.Equal("ShippingProvince", result.Error!.Code);
+		Assert.Equal("ValidationFailed", result.Error!.Code);
 		Assert.Equal("Shipping province is required", result.Error!.Message);
 	}
 
@@ -178,7 +178,7 @@ public class CreateOrderCommandHandlerTests
 
 		// Assert
 		Assert.False(result.IsSuccess);
-		Assert.Equal("ShippingPostalCode", result.Error!.Code);
+		Assert.Equal("ValidationFailed", result.Error!.Code);
 		Assert.Equal("Shipping postal code is required", result.Error!.Message);
 	}
 
@@ -207,7 +207,7 @@ public class CreateOrderCommandHandlerTests
 
 		// Assert
 		Assert.False(result.IsSuccess);
-		Assert.Equal("LineItems", result.Error!.Code);
+		Assert.Equal("ValidationFailed", result.Error!.Code);
 		Assert.Equal("Order must contain at least one item", result.Error.Message);
 	}
 
