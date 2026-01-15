@@ -28,6 +28,16 @@
 
 - For the Server project, organize domain logic into subfolders under a `Features` folder at the project root.
 - Shared infrastructure (e.g., Result, Option, CQRS interfaces) goes in a `Shared` folder at the project root.
+- API DTOs are organized in a `DTOs` folder at the project root (e.g., `DTOs/ApiDtos.cs`).
+
+## Endpoint Organization
+
+- Minimal API endpoint declarations are organized into feature-specific static extension methods.
+- Each feature folder contains an `*Endpoints.cs` file (e.g., `Features/Product/ProductEndpoints.cs`, `Features/Order/OrderEndpoints.cs`).
+- Extension methods follow the pattern `Map{Feature}Endpoints(this IEndpointRouteBuilder app)` and return `IEndpointRouteBuilder` for chaining.
+- Extension methods create their own route groups and register all endpoints for that feature.
+- Program.cs calls these extension methods (e.g., `app.MapProductEndpoints()`, `app.MapOrderEndpoints()`) to register endpoints.
+- This pattern follows vertical slice architecture, keeping all feature code (endpoints, handlers, commands, queries) together.
 
 ## Testing
 
