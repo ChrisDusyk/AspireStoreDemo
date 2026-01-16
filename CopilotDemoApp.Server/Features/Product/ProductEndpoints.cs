@@ -96,15 +96,30 @@ public static class ProductEndpoints
 		})
 		.WithName("CreateProduct");
 
-		adminProducts.MapPut("/{id:guid}", (ClaimsPrincipal user, Guid id, ProductUpdateRequest request) =>
+		adminProducts.MapPut("/{id:guid}", async (
+			Guid id,
+			ProductUpdateRequest request,
+			[FromServices] ICommandHandler<Admin.UpdateProductCommand, ProductResponse> handler
+		) =>
 		{
-			var userId = user.FindFirst("sub")?.Value ?? "";
-
-			if (string.IsNullOrEmpty(userId))
-				return Results.Unauthorized();
-
-			// TODO: Implement product update
-			return Results.Ok(new { message = $"Product {id} updated (placeholder)" });
+			var command = new Admin.UpdateProductCommand(
+				id,
+				request.Name,
+				request.Description,
+				request.Price,
+				request.IsActive
+			);
+			var result = await handler.HandleAsync(command);
+			return result.Match(
+				response => Results.Ok(response),
+				error => error switch
+				{
+					Error e when e.Code == ErrorCodes.NotFound => Results.NotFound(new { error = e.Message }),
+					Error e when e.Code == ErrorCodes.ValidationFailed => Results.BadRequest(new { error = e.Message }),
+					Error e when e.Code == ErrorCodes.DatabaseError => Results.Problem(detail: error.Message, statusCode: 500),
+					_ => Results.Problem(detail: error.Message, statusCode: 500)
+				}
+			);
 		})
 		.WithName("UpdateProduct");
 

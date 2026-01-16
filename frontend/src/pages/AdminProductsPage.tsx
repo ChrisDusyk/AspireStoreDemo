@@ -1,7 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "react-oidc-context";
 import type { ProductResponse } from "../types/product";
 import ErrorDisplay from "../components/ErrorDisplay";
+import Toast from "../components/Toast";
 
 interface PagedProductResponse {
   products: ProductResponse[];
@@ -17,6 +19,8 @@ type SortDirection = "asc" | "desc";
 
 function AdminProductsPage() {
   const auth = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [products, setProducts] = useState<ProductResponse[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -28,6 +32,17 @@ function AdminProductsPage() {
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Check for success message from navigation state
+  useEffect(() => {
+    const state = location.state as { successMessage?: string } | null;
+    if (state?.successMessage) {
+      setToastMessage(state.successMessage);
+      // Clear the state to prevent showing toast on refresh
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -118,8 +133,7 @@ function AdminProductsPage() {
   };
 
   const handleEdit = (productId: string) => {
-    console.log("Edit product:", productId);
-    // TODO: Implement edit functionality
+    navigate(`/admin/products/${productId}/edit`);
   };
 
   const handleDelete = (productId: string, productName: string | null) => {
@@ -357,6 +371,14 @@ function AdminProductsPage() {
             Next
           </button>
         </div>
+      )}
+
+      {toastMessage && (
+        <Toast
+          message={toastMessage}
+          type="success"
+          onClose={() => setToastMessage(null)}
+        />
       )}
     </div>
   );
