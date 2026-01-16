@@ -20,6 +20,12 @@ var server = builder.AddProject<Projects.CopilotDemoApp_Server>("server")
 	.WithExternalHttpEndpoints();
 
 var webfrontend = builder.AddViteApp("webfrontend", "../frontend")
+	.WithEndpoint("http", (endpointAnnotation) =>
+	{
+		endpointAnnotation.Port = 5173;
+		endpointAnnotation.IsExternal = true;
+		endpointAnnotation.IsProxied = false;
+	})
 	.WithReference(server)
 	.WaitFor(server);
 
