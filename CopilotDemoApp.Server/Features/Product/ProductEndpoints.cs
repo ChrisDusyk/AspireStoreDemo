@@ -64,6 +64,26 @@ public static class ProductEndpoints
 		var adminProducts = api.MapGroup("/admin/products")
 			.RequireAuthorization("AdminOnly");
 
+		adminProducts.MapGet("/", async (
+			[AsParameters] Admin.AdminProductFilterRequest filter,
+			[FromServices] IQueryHandler<Admin.GetAllProductsQuery, PagedProductResponse> handler
+		) =>
+		{
+			var result = await handler.HandleAsync(new Admin.GetAllProductsQuery(filter));
+			return result.Match(
+				paged => Results.Ok(paged),
+				error => error switch
+				{
+					Error e when e.Code == ErrorCodes.NotFound => Results.NotFound(),
+					Error e when e.Code == ErrorCodes.Unauthorized => Results.Unauthorized(),
+					Error e when e.Code == ErrorCodes.ValidationFailed => Results.BadRequest(new { error = e.Message }),
+					Error e when e.Code == ErrorCodes.DatabaseError => Results.Problem(detail: error.Message, statusCode: 500),
+					_ => Results.Problem(detail: error.Message, statusCode: 500)
+				}
+			);
+		})
+		.WithName("GetAllProductsAdmin");
+
 		adminProducts.MapPost("/", (ClaimsPrincipal user, ProductCreateRequest request) =>
 		{
 			var userId = user.FindFirst("sub")?.Value ?? "";
