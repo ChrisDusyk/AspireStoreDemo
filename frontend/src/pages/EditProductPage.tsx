@@ -1,4 +1,4 @@
-import { useEffect, useState, FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "react-oidc-context";
 import type { ProductResponse } from "../types/product";
