@@ -28,9 +28,7 @@ public static class OrderEndpoints
 			[FromServices] IQueryHandler<GetUserOrdersQuery, List<Order>> handler
 		) =>
 		{
-			var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
-				?? user.FindFirst("sub")?.Value
-				?? "";
+			var userId = user.FindFirst("sub")?.Value ?? "";
 
 			if (string.IsNullOrEmpty(userId))
 				return Results.Unauthorized();
@@ -56,16 +54,12 @@ public static class OrderEndpoints
 			[FromServices] ICommandHandler<CreateOrderCommand, Order> handler
 		) =>
 		{
-			var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
-				?? user.FindFirst("sub")?.Value
-				?? "";
+			var userId = user.FindFirst("sub")?.Value ?? "";
 
 			if (string.IsNullOrEmpty(userId))
 				return Results.Unauthorized();
 
-			var userEmail = user.FindFirst(ClaimTypes.Email)?.Value
-				?? user.FindFirst("email")?.Value
-				?? "";
+			var userEmail = user.FindFirst("email")?.Value ?? "";
 
 			var command = new CreateOrderCommand(
 				userId,

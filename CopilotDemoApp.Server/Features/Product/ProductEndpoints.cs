@@ -66,9 +66,7 @@ public static class ProductEndpoints
 
 		adminProducts.MapPost("/", (ClaimsPrincipal user, ProductCreateRequest request) =>
 		{
-			var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
-				?? user.FindFirst("sub")?.Value
-				?? "";
+			var userId = user.FindFirst("sub")?.Value ?? "";
 
 			if (string.IsNullOrEmpty(userId))
 				return Results.Unauthorized();
@@ -80,9 +78,7 @@ public static class ProductEndpoints
 
 		adminProducts.MapPut("/{id:guid}", (ClaimsPrincipal user, Guid id, ProductUpdateRequest request) =>
 		{
-			var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
-				?? user.FindFirst("sub")?.Value
-				?? "";
+			var userId = user.FindFirst("sub")?.Value ?? "";
 
 			if (string.IsNullOrEmpty(userId))
 				return Results.Unauthorized();

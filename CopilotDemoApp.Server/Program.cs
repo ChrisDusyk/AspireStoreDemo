@@ -30,7 +30,7 @@ builder.Services
 		// Map Keycloak's realm_access.roles to ASP.NET Core's role claims
 		options.MapInboundClaims = false; // Use original claim names from the token
 		options.TokenValidationParameters.RoleClaimType = "role";
-		options.TokenValidationParameters.NameClaimType = "preferred_username";
+		options.TokenValidationParameters.NameClaimType = "sub"; // Use standard OIDC subject identifier
 
 		// Extract roles from Keycloak's nested realm_access structure
 		options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
