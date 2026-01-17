@@ -140,7 +140,7 @@ function AdminProductsPage() {
     const confirmed = window.confirm(
       `Are you sure you want to delete "${
         productName || "this product"
-      }"? This will mark it as inactive.`
+      }"? This will mark it as inactive.`,
     );
     if (confirmed) {
       console.log("Delete product:", productId);
@@ -163,7 +163,27 @@ function AdminProductsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Manage Products</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Manage Products</h1>
+        <button
+          onClick={() => navigate("/admin/products/create")}
+          className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded transition-colors flex items-center gap-2 cursor-pointer"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+              clipRule="evenodd"
+            />
+          </svg>
+          Create Product
+        </button>
+      </div>
 
       {/* Search and Filter Controls */}
       <div className="mb-6 space-y-4">

@@ -1,6 +1,6 @@
+using System.Security.Claims;
 using CopilotDemoApp.Server.Shared;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace CopilotDemoApp.Server.Features.Product;
 
@@ -84,15 +84,35 @@ public static class ProductEndpoints
 		})
 		.WithName("GetAllProductsAdmin");
 
-		adminProducts.MapPost("/", (ClaimsPrincipal user, ProductCreateRequest request) =>
+		adminProducts.MapPost("/", async (
+			ClaimsPrincipal user,
+			ProductCreateRequest request,
+			[FromServices] ICommandHandler<Admin.CreateProductCommand, Guid> handler
+		) =>
 		{
 			var userId = user.FindFirst("sub")?.Value ?? "";
 
 			if (string.IsNullOrEmpty(userId))
 				return Results.Unauthorized();
 
-			// TODO: Implement product creation
-			return Results.Created($"/api/products/{Guid.NewGuid()}", new { message = "Product created (placeholder)" });
+			var command = new Admin.CreateProductCommand(
+				request.Name,
+				request.Description,
+				request.Price,
+				request.IsActive
+			);
+
+			var result = await handler.HandleAsync(command);
+
+			return result.Match(
+				id => Results.Created($"/api/products/{id}", new { id }),
+				error => error switch
+				{
+					Error e when e.Code == ErrorCodes.ValidationFailed => Results.BadRequest(new { error = e.Message }),
+					Error e when e.Code == ErrorCodes.DatabaseError => Results.Problem(detail: error.Message, statusCode: 500),
+					_ => Results.Problem(detail: error.Message, statusCode: 500)
+				}
+			);
 		})
 		.WithName("CreateProduct");
 
