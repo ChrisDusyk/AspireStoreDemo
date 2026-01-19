@@ -6,12 +6,17 @@ var postgres = builder
 	.WithDataVolume()
 	.WithPgAdmin();
 var db = postgres.AddDatabase("appdb");
+var keycloakdb = postgres.AddDatabase("keycloakdb");
 
 // Add Keycloak with realm import
 var keycloak = builder
 	.AddKeycloak("keycloak", port: 8080)
-	.WithDataVolume()
-	.WithRealmImport("./copilotdemoapp-realm.json");
+	.WithRealmImport("./copilotdemoapp-realm.json")
+	.WithEnvironment("KC_DB", "postgres")
+	.WithEnvironment("KC_DB_URL", ReferenceExpression.Create($"jdbc:postgresql://{postgres.Resource.PrimaryEndpoint.Property(EndpointProperty.Host)}:{postgres.Resource.PrimaryEndpoint.Property(EndpointProperty.Port)}/keycloakdb"))
+	.WithEnvironment("KC_DB_USERNAME", postgres.Resource.UserNameReference)
+	.WithEnvironment("KC_DB_PASSWORD", postgres.Resource.PasswordParameter)
+	.WaitFor(keycloakdb);
 
 var server = builder.AddProject<Projects.CopilotDemoApp_Server>("server")
 	.WithReference(db).WaitFor(db)
