@@ -5,6 +5,9 @@ import { AuthProvider } from "react-oidc-context";
 import "./index.css";
 import App from "./App.tsx";
 import { oidcConfig } from "./utils/authConfig";
+import FrontendTracer from "./otel.ts";
+
+if (window !== undefined) FrontendTracer();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -13,5 +16,5 @@ createRoot(document.getElementById("root")!).render(
         <App />
       </BrowserRouter>
     </AuthProvider>
-  </StrictMode>
+  </StrictMode>,
 );

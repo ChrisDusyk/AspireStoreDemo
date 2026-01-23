@@ -81,6 +81,16 @@ builder.AddNpgsqlDbContext<CopilotDemoApp.Server.Database.AppDbContext>("appdb")
 
 builder.Services.AddCqrsHandlers();
 
+// Configure HttpClient for OTLP relay to accept development certificates
+builder.Services.AddHttpClient(string.Empty, client => { })
+	.ConfigurePrimaryHttpMessageHandler(() =>
+	{
+		return new HttpClientHandler
+		{
+			ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+		};
+	});
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
@@ -105,6 +115,88 @@ if (app.Environment.IsDevelopment())
 
 app.MapProductEndpoints();
 app.MapOrderEndpoints();
+
+// OTLP relay endpoint - forwards browser telemetry (HTTP/1.1) to Aspire's OTLP endpoint (HTTP/2)
+app.MapPost("/api/otlp/{**path}", async (HttpContext context, IHttpClientFactory httpClientFactory, string? path) =>
+{
+	var otlpEndpoint = app.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
+	if (string.IsNullOrEmpty(otlpEndpoint))
+		return Results.BadRequest("OTLP endpoint not configured");
+
+	var otlpHeaders = app.Configuration["OTEL_EXPORTER_OTLP_HEADERS"];
+
+	app.Logger.LogInformation("OTLP relay received request with path: '{Path}', headers: '{Headers}', content-type: '{ContentType}'", 
+		path ?? "(empty)", 
+		otlpHeaders ?? "(none)",
+		context.Request.ContentType ?? "(none)");
+
+	var client = httpClientFactory.CreateClient();
+	var targetUrl = string.IsNullOrEmpty(path) 
+		? otlpEndpoint.TrimEnd('/')
+		: $"{otlpEndpoint.TrimEnd('/')}/{path}";
+
+	using var requestMessage = new HttpRequestMessage(HttpMethod.Post, targetUrl);
+	requestMessage.Version = new Version(2, 0);
+	
+	// Read and buffer the request body
+	using var memoryStream = new MemoryStream();
+	await context.Request.Body.CopyToAsync(memoryStream);
+	memoryStream.Position = 0;
+	requestMessage.Content = new StreamContent(memoryStream);
+
+	// Copy content-type header
+	if (context.Request.ContentType != null)
+	{
+		requestMessage.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(context.Request.ContentType);
+		app.Logger.LogInformation("Set Content-Type: {ContentType}", context.Request.ContentType);
+	}
+	
+	// Copy other relevant headers from the original request
+	foreach (var header in context.Request.Headers)
+	{
+		if (header.Key.StartsWith("x-", StringComparison.OrdinalIgnoreCase) || 
+			header.Key.Equals("user-agent", StringComparison.OrdinalIgnoreCase))
+		{
+			requestMessage.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray());
+			app.Logger.LogInformation("Copied header from request: {HeaderName}", header.Key);
+		}
+	}
+
+	// Add OTLP authentication headers
+	if (!string.IsNullOrEmpty(otlpHeaders))
+	{
+		foreach (var header in otlpHeaders.Split(','))
+		{
+			var parts = header.Split('=', 2);
+			if (parts.Length == 2)
+			{
+				var headerName = parts[0].Trim();
+				var headerValue = parts[1].Trim();
+				requestMessage.Headers.TryAddWithoutValidation(headerName, headerValue);
+				app.Logger.LogInformation("Added header: {HeaderName} = {HeaderValue}", headerName, headerValue);
+			}
+		}
+	}
+
+	try
+	{
+		var response = await client.SendAsync(requestMessage);
+		
+		if (!response.IsSuccessStatusCode)
+		{
+			var responseBody = await response.Content.ReadAsStringAsync();
+			app.Logger.LogWarning("OTLP relay failed: {StatusCode}, Response: {ResponseBody}", response.StatusCode, responseBody);
+		}
+		
+		app.Logger.LogInformation("OTLP relay forwarded to {TargetUrl}, response status: {StatusCode}", targetUrl, response.StatusCode);
+		return Results.StatusCode((int)response.StatusCode);
+	}
+	catch (Exception ex)
+	{
+		app.Logger.LogError(ex, "Failed to forward OTLP telemetry to {TargetUrl}", targetUrl);
+		return Results.Problem("Failed to forward telemetry");
+	}
+});
 
 app.MapDefaultEndpoints();
 
