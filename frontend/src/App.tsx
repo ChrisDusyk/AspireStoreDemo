@@ -4,6 +4,7 @@ import HomePage from "./pages/HomePage";
 import AboutPage from "./pages/AboutPage";
 import ProductDetailsPage from "./pages/ProductDetailsPage";
 import AdminProductsPage from "./pages/AdminProductsPage";
+import AdminOrdersPage from "./pages/AdminOrdersPage";
 import EditProductPage from "./pages/EditProductPage";
 import CreateProductPage from "./pages/CreateProductPage";
 import OrdersPage from "./pages/OrdersPage";
@@ -45,6 +46,14 @@ function App() {
             element={
               <ProtectedRoute requiredRole="admin">
                 <EditProductPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/orders"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminOrdersPage />
               </ProtectedRoute>
             }
           />

@@ -1,3 +1,4 @@
+using CopilotDemoApp.Server.Features.Order.Admin;
 using CopilotDemoApp.Server.Shared;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -85,6 +86,53 @@ public static class OrderEndpoints
 			);
 		})
 		.WithName("CreateOrder");
+
+		// Admin endpoints for orders
+		var adminOrders = api.MapGroup("/admin/orders")
+			.RequireAuthorization("AdminOnly");
+
+		adminOrders.MapGet("/pending", async (
+			[FromQuery] int page,
+			[FromQuery] int pageSize,
+			[FromServices] IQueryHandler<GetAdminPendingOrdersQuery, PagedOrderResponse> handler
+		) =>
+		{
+			var query = new GetAdminPendingOrdersQuery(
+				page > 0 ? page : 1,
+				pageSize > 0 ? pageSize : 25
+			);
+
+			var result = await handler.HandleAsync(query);
+			return result.Match(
+				pagedOrders => Results.Ok(pagedOrders),
+				error => error switch
+				{
+					Error e when e.Code == ErrorCodes.DatabaseError => Results.Problem(detail: error.Message, statusCode: 500),
+					_ => Results.Problem(detail: error.Message, statusCode: 500)
+				}
+			);
+		})
+		.WithName("GetPendingOrders");
+
+		adminOrders.MapPost("/{id}/accept", async (
+			Guid id,
+			[FromServices] ICommandHandler<AcceptOrderForFulfillmentCommand, Unit> handler
+		) =>
+		{
+			var command = new AcceptOrderForFulfillmentCommand(id);
+			var result = await handler.HandleAsync(command);
+			return result.Match(
+				_ => Results.NoContent(),
+				error => error switch
+				{
+					Error e when e.Code == ErrorCodes.NotFound => Results.NotFound(new { error = e.Message }),
+					Error e when e.Code == ErrorCodes.ValidationFailed => Results.BadRequest(new { error = e.Message }),
+					Error e when e.Code == ErrorCodes.DatabaseError => Results.Problem(detail: error.Message, statusCode: 500),
+					_ => Results.Problem(detail: error.Message, statusCode: 500)
+				}
+			);
+		})
+		.WithName("AcceptOrderForFulfillment");
 
 		return app;
 	}

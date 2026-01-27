@@ -61,12 +61,20 @@ function Layout({ children }: { children: React.ReactNode }) {
                   </Link>
                 )}
                 {isAdmin && (
-                  <Link
-                    to="/admin/products"
-                    className={`text-white hover:text-[${ACTION_GREEN}] font-medium transition-colors`}
-                  >
-                    Manage Products
-                  </Link>
+                  <>
+                    <Link
+                      to="/admin/products"
+                      className={`text-white hover:text-[${ACTION_GREEN}] font-medium transition-colors`}
+                    >
+                      Manage Products
+                    </Link>
+                    <Link
+                      to="/admin/orders"
+                      className={`text-white hover:text-[${ACTION_GREEN}] font-medium transition-colors`}
+                    >
+                      Order Queue
+                    </Link>
+                  </>
                 )}
               </>
             )}
