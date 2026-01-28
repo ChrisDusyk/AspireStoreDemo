@@ -9,7 +9,11 @@ public record CreateOrderCommand(
 	string ShippingCity,
 	string ShippingProvince,
 	string ShippingPostalCode,
-	List<CreateOrderLineItemDto> LineItems
+	List<CreateOrderLineItemDto> LineItems,
+	string CardNumber,
+	string CardholderName,
+	string ExpiryDate,
+	string Cvv
 ) : ICommand<Order>;
 
 public record CreateOrderLineItemDto(

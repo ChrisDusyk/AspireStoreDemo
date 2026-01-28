@@ -11,7 +11,11 @@ public record OrderCreateRequest(
 	string ShippingCity,
 	string ShippingState,
 	string ShippingPostalCode,
-	List<CreateOrderLineItemDto> LineItems
+	List<CreateOrderLineItemDto> LineItems,
+	string CardNumber,
+	string CardholderName,
+	string ExpiryDate,
+	string Cvv
 );
 
 public static class OrderEndpoints
@@ -69,7 +73,11 @@ public static class OrderEndpoints
 				request.ShippingCity,
 				request.ShippingState,
 				request.ShippingPostalCode,
-				request.LineItems
+				request.LineItems,
+				request.CardNumber,
+				request.CardholderName,
+				request.ExpiryDate,
+				request.Cvv
 			);
 
 			var result = await handler.HandleAsync(command);

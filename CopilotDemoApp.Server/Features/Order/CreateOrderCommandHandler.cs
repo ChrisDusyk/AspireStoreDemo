@@ -26,6 +26,41 @@ public class CreateOrderCommandHandler(AppDbContext context) : ICommandHandler<C
 		if (command.LineItems.Any(item => item.Quantity <= 0))
 			return Result<Order>.Failure(new Error(ErrorCodes.ValidationFailed, "All line items must have a quantity greater than zero"));
 
+		// Payment validation
+		if (string.IsNullOrWhiteSpace(command.CardNumber))
+			return Result<Order>.Failure(new Error(ErrorCodes.ValidationFailed, "CARD_NUMBER_REQUIRED: Card number is required"));
+
+		if (string.IsNullOrWhiteSpace(command.CardholderName))
+			return Result<Order>.Failure(new Error(ErrorCodes.ValidationFailed, "CARDHOLDER_NAME_REQUIRED: Cardholder name is required"));
+
+		if (string.IsNullOrWhiteSpace(command.ExpiryDate))
+			return Result<Order>.Failure(new Error(ErrorCodes.ValidationFailed, "EXPIRY_DATE_REQUIRED: Expiry date is required"));
+
+		if (string.IsNullOrWhiteSpace(command.Cvv))
+			return Result<Order>.Failure(new Error(ErrorCodes.ValidationFailed, "CVV_REQUIRED: CVV is required"));
+
+		// Strip spaces from card number and validate
+		var cardNumberDigits = command.CardNumber.Replace(" ", "");
+		if (cardNumberDigits.Length != 16 || !cardNumberDigits.All(char.IsDigit))
+			return Result<Order>.Failure(new Error(ErrorCodes.ValidationFailed, "INVALID_CARD_NUMBER: Card number must be exactly 16 digits"));
+
+		// Validate expiry date format (MM/YY)
+		var expiryRegex = new System.Text.RegularExpressions.Regex(@"^(0[1-9]|1[0-2])\/[0-9]{2}$");
+		if (!expiryRegex.IsMatch(command.ExpiryDate))
+			return Result<Order>.Failure(new Error(ErrorCodes.ValidationFailed, "INVALID_EXPIRY_FORMAT: Expiry date must be in MM/YY format"));
+
+		// Validate expiry date is in the future
+		var expiryParts = command.ExpiryDate.Split('/');
+		var expiryMonth = int.Parse(expiryParts[0]);
+		var expiryYear = 2000 + int.Parse(expiryParts[1]);
+		var expiryDate = new DateTime(expiryYear, expiryMonth, 1).AddMonths(1).AddDays(-1); // Last day of expiry month
+		if (expiryDate < DateTime.UtcNow.Date)
+			return Result<Order>.Failure(new Error(ErrorCodes.ValidationFailed, "CARD_EXPIRED: Card expiry date must be in the future"));
+
+		// Validate CVV
+		if (command.Cvv.Length < 3 || command.Cvv.Length > 4 || !command.Cvv.All(char.IsDigit))
+			return Result<Order>.Failure(new Error(ErrorCodes.ValidationFailed, "INVALID_CVV: CVV must be 3 or 4 digits"));
+
 		var totalAmount = command.LineItems.Sum(item => item.ProductPrice * item.Quantity);
 
 		try

@@ -41,4 +41,8 @@ export interface CreateOrderRequest {
   shippingState: string;
   shippingPostalCode: string;
   lineItems: CreateOrderLineItemDto[];
+  cardNumber: string;
+  cardholderName: string;
+  expiryDate: string;
+  cvv: string;
 }
