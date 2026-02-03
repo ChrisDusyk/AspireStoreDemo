@@ -1,5 +1,6 @@
 using CopilotDemoApp.Server.Features.Order.Admin;
 using CopilotDemoApp.Server.Shared;
+using CopilotDemoApp.Server.Database;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -141,6 +142,77 @@ public static class OrderEndpoints
 			);
 		})
 		.WithName("AcceptOrderForFulfillment");
+
+		adminOrders.MapGet("/processing-queue", async (
+			[FromQuery] int? status,
+			[FromQuery] string? userEmail,
+			[FromQuery] string? sortBy,
+			[FromQuery] bool? sortDescending,
+			[FromQuery] int page,
+			[FromQuery] int pageSize,
+			[FromServices] IQueryHandler<GetProcessingQueueOrdersQuery, PagedOrderResponse> handler
+		) =>
+		{
+			var query = new GetProcessingQueueOrdersQuery(
+				status.HasValue ? (OrderStatus)status.Value : OrderStatus.Processing,
+				userEmail,
+				sortBy ?? "OrderDate",
+				sortDescending ?? false,
+				page > 0 ? page : 1,
+				pageSize > 0 ? pageSize : 25
+			);
+
+			var result = await handler.HandleAsync(query);
+			return result.Match(
+				pagedOrders => Results.Ok(pagedOrders),
+				error => error switch
+				{
+					Error e when e.Code == ErrorCodes.DatabaseError => Results.Problem(detail: error.Message, statusCode: 500),
+					_ => Results.Problem(detail: error.Message, statusCode: 500)
+				}
+			);
+		})
+		.WithName("GetProcessingQueueOrders");
+
+		adminOrders.MapPost("/{id}/ship", async (
+			Guid id,
+			[FromServices] ICommandHandler<UpdateOrderToShippedCommand, Unit> handler
+		) =>
+		{
+			var command = new UpdateOrderToShippedCommand(id);
+			var result = await handler.HandleAsync(command);
+			return result.Match(
+				_ => Results.NoContent(),
+				error => error switch
+				{
+					Error e when e.Code == ErrorCodes.NotFound => Results.NotFound(new { error = e.Message }),
+					Error e when e.Code == ErrorCodes.ValidationFailed => Results.BadRequest(new { error = e.Message }),
+					Error e when e.Code == ErrorCodes.DatabaseError => Results.Problem(detail: error.Message, statusCode: 500),
+					_ => Results.Problem(detail: error.Message, statusCode: 500)
+				}
+			);
+		})
+		.WithName("UpdateOrderToShipped");
+
+		adminOrders.MapPost("/{id}/deliver", async (
+			Guid id,
+			[FromServices] ICommandHandler<UpdateOrderToDeliveredCommand, Unit> handler
+		) =>
+		{
+			var command = new UpdateOrderToDeliveredCommand(id);
+			var result = await handler.HandleAsync(command);
+			return result.Match(
+				_ => Results.NoContent(),
+				error => error switch
+				{
+					Error e when e.Code == ErrorCodes.NotFound => Results.NotFound(new { error = e.Message }),
+					Error e when e.Code == ErrorCodes.ValidationFailed => Results.BadRequest(new { error = e.Message }),
+					Error e when e.Code == ErrorCodes.DatabaseError => Results.Problem(detail: error.Message, statusCode: 500),
+					_ => Results.Problem(detail: error.Message, statusCode: 500)
+				}
+			);
+		})
+		.WithName("UpdateOrderToDelivered");
 
 		return app;
 	}

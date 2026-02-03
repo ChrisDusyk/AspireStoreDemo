@@ -27,7 +27,11 @@ public class CreateOrderCommandHandlerTests
 			{
 				new(Guid.NewGuid(), "Test Product 1", 29.99m, 2),
 				new(Guid.NewGuid(), "Test Product 2", 49.99m, 1)
-			}
+			},
+			CardNumber: "4111111111111111",
+			CardholderName: "Test User",
+			ExpiryDate: "12/28",
+			Cvv: "123"
 		);
 
 		// Act
@@ -74,7 +78,11 @@ public class CreateOrderCommandHandlerTests
 			LineItems: new List<CreateOrderLineItemDto>
 			{
 				new(Guid.NewGuid(), "Test Product 1", 29.99m, 2)
-			}
+			},
+			CardNumber: "4111111111111111",
+			CardholderName: "Test User",
+			ExpiryDate: "12/28",
+			Cvv: "123"
 		);
 
 		// Act
@@ -106,7 +114,11 @@ public class CreateOrderCommandHandlerTests
 			LineItems: new List<CreateOrderLineItemDto>
 			{
 				new(Guid.NewGuid(), "Test Product 1", 29.99m, 2)
-			}
+			},
+			CardNumber: "4111111111111111",
+			CardholderName: "Test User",
+			ExpiryDate: "12/28",
+			Cvv: "123"
 		);
 
 		// Act
@@ -138,7 +150,11 @@ public class CreateOrderCommandHandlerTests
 			LineItems: new List<CreateOrderLineItemDto>
 			{
 				new(Guid.NewGuid(), "Test Product 1", 29.99m, 2)
-			}
+			},
+			CardNumber: "4111111111111111",
+			CardholderName: "Test User",
+			ExpiryDate: "12/28",
+			Cvv: "123"
 		);
 
 		// Act
@@ -170,7 +186,11 @@ public class CreateOrderCommandHandlerTests
 			LineItems: new List<CreateOrderLineItemDto>
 			{
 				new(Guid.NewGuid(), "Test Product 1", 29.99m, 2)
-			}
+			},
+			CardNumber: "4111111111111111",
+			CardholderName: "Test User",
+			ExpiryDate: "12/28",
+			Cvv: "123"
 		);
 
 		// Act
@@ -199,7 +219,11 @@ public class CreateOrderCommandHandlerTests
 			ShippingCity: "Toronto",
 			ShippingProvince: "ON",
 			ShippingPostalCode: "M5H 2N2",
-			LineItems: new List<CreateOrderLineItemDto>()
+			LineItems: new List<CreateOrderLineItemDto>(),
+			CardNumber: "4111111111111111",
+			CardholderName: "Test User",
+			ExpiryDate: "12/28",
+			Cvv: "123"
 		);
 
 		// Act
@@ -233,7 +257,11 @@ public class CreateOrderCommandHandlerTests
 				new(Guid.NewGuid(), "Product 1", 10.50m, 3),  // 31.50
 				new(Guid.NewGuid(), "Product 2", 25.00m, 2),  // 50.00
 				new(Guid.NewGuid(), "Product 3", 7.99m, 5)    // 39.95
-			}
+			},
+			CardNumber: "4111111111111111",
+			CardholderName: "Test User",
+			ExpiryDate: "12/28",
+			Cvv: "123"
 		);
 
 		// Act
@@ -264,7 +292,11 @@ public class CreateOrderCommandHandlerTests
 			LineItems: new List<CreateOrderLineItemDto>
 			{
 				new(Guid.NewGuid(), "Test Product", 29.99m, 1)
-			}
+			},
+			CardNumber: "4111111111111111",
+			CardholderName: "Test User",
+			ExpiryDate: "12/28",
+			Cvv: "123"
 		);
 
 		// Act
@@ -296,7 +328,11 @@ public class CreateOrderCommandHandlerTests
 			LineItems: new List<CreateOrderLineItemDto>
 			{
 				new(productId, "Original Product Name", 99.99m, 2)
-			}
+			},
+			CardNumber: "4111111111111111",
+			CardholderName: "Test User",
+			ExpiryDate: "12/28",
+			Cvv: "123"
 		);
 
 		// Act

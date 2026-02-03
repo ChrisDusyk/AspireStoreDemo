@@ -5,6 +5,7 @@ import AboutPage from "./pages/AboutPage";
 import ProductDetailsPage from "./pages/ProductDetailsPage";
 import AdminProductsPage from "./pages/AdminProductsPage";
 import AdminOrdersPage from "./pages/AdminOrdersPage";
+import ProcessingQueuePage from "./pages/ProcessingQueuePage";
 import EditProductPage from "./pages/EditProductPage";
 import CreateProductPage from "./pages/CreateProductPage";
 import OrdersPage from "./pages/OrdersPage";
@@ -54,6 +55,14 @@ function App() {
             element={
               <ProtectedRoute requiredRole="admin">
                 <AdminOrdersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/processing-queue"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <ProcessingQueuePage />
               </ProtectedRoute>
             }
           />

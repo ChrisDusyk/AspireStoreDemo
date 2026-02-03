@@ -74,6 +74,12 @@ function Layout({ children }: { children: React.ReactNode }) {
                     >
                       Order Queue
                     </Link>
+                    <Link
+                      to="/admin/processing-queue"
+                      className={`text-white hover:text-[${ACTION_GREEN}] font-medium transition-colors`}
+                    >
+                      Processing Queue
+                    </Link>
                   </>
                 )}
               </>

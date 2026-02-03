@@ -43,6 +43,7 @@
 
 - All infrastructure and domain types have matching unit tests in the test project, mirroring the folder structure of the main project.
 - Use xUnit v3 and standard C# test naming conventions.
+- Use the null-forgiving operator (`!`) when accessing `Result<T>.Value` or `Result<T>.Error` properties after asserting success/failure. Example: `Assert.Equal(expected, result.Value!.Property)` or `Assert.Equal(ErrorCodes.NotFound, result.Error!.Code)`.
 
 ---
 
@@ -63,14 +64,12 @@
 ## Product Endpoints
 
 - All product listing endpoints use query string parameters for filtering and pagination:
-
   - `name` (optional, partial match, case-insensitive)
   - `isActive` (optional, defaults to true)
   - `page` (optional, defaults to 1)
   - `pageSize` (optional, defaults to 25)
 
 - The API response includes:
-
   - `products`: List of products for the current page
   - `totalCount`: Total number of products matching the filter
   - `page`: Current page number
