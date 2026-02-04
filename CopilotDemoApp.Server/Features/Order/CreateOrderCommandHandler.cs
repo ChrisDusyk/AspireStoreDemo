@@ -101,16 +101,17 @@ public class CreateOrderCommandHandler(AppDbContext context) : ICommandHandler<C
 				orderEntity.ShippingPostalCode,
 				orderEntity.OrderDate,
 				orderEntity.Status,
-				orderEntity.TotalAmount,
-				orderEntity.LineItems.Select(li => new OrderLineItem(
-					li.Id,
-					li.OrderId,
-					li.ProductId,
-					li.ProductName,
-					li.ProductPrice,
-					li.Quantity
-				)).ToList()
-			);
+			orderEntity.TrackingNumber,
+			orderEntity.TotalAmount,
+			orderEntity.LineItems.Select(li => new OrderLineItem(
+				li.Id,
+				li.OrderId,
+				li.ProductId,
+				li.ProductName,
+				li.ProductPrice,
+				li.Quantity
+			)).ToList()
+		);
 
 			return Result<Order>.Success(domainOrder);
 		}

@@ -19,6 +19,8 @@ public record OrderCreateRequest(
 	string Cvv
 );
 
+public record ShipOrderRequest(string TrackingNumber);
+
 public static class OrderEndpoints
 {
 	public static IEndpointRouteBuilder MapOrderEndpoints(this IEndpointRouteBuilder app)
@@ -176,18 +178,17 @@ public static class OrderEndpoints
 
 		adminOrders.MapPost("/{id}/ship", async (
 			Guid id,
-			[FromServices] ICommandHandler<UpdateOrderToShippedCommand, Unit> handler
-		) =>
-		{
-			var command = new UpdateOrderToShippedCommand(id);
-			var result = await handler.HandleAsync(command);
-			return result.Match(
-				_ => Results.NoContent(),
-				error => error switch
-				{
-					Error e when e.Code == ErrorCodes.NotFound => Results.NotFound(new { error = e.Message }),
-					Error e when e.Code == ErrorCodes.ValidationFailed => Results.BadRequest(new { error = e.Message }),
-					Error e when e.Code == ErrorCodes.DatabaseError => Results.Problem(detail: error.Message, statusCode: 500),
+		[FromBody] ShipOrderRequest request,
+		[FromServices] ICommandHandler<UpdateOrderToShippedCommand, Unit> handler
+	) =>
+	{
+		var command = new UpdateOrderToShippedCommand(id, request.TrackingNumber);
+		var result = await handler.HandleAsync(command);
+		return result.Match(
+			_ => Results.NoContent(),
+			error => error switch
+			{
+				Error e when e.Code == ErrorCodes.NotFound => Results.NotFound(new { error = e.Message }),
 					_ => Results.Problem(detail: error.Message, statusCode: 500)
 				}
 			);

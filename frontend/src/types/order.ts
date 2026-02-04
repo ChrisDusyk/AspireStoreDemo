@@ -24,6 +24,7 @@ export interface Order {
   shippingPostalCode: string;
   orderDate: string;
   status: OrderStatus;
+  trackingNumber?: string;
   totalAmount: number;
   lineItems: OrderLineItem[];
 }

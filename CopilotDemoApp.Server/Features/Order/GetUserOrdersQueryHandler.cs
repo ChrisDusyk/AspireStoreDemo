@@ -27,6 +27,7 @@ public class GetUserOrdersQueryHandler(AppDbContext context) : IQueryHandler<Get
 				o.ShippingPostalCode,
 				o.OrderDate,
 				o.Status,
+				o.TrackingNumber,
 				o.TotalAmount,
 				[.. o.LineItems.Select(li => new OrderLineItem(
 				li.Id,

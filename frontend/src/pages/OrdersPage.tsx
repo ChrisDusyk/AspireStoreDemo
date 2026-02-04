@@ -147,6 +147,12 @@ function OrdersPage() {
                     {order.shippingCity}, {order.shippingState}{" "}
                     {order.shippingPostalCode}
                   </p>
+                  {order.trackingNumber && (order.status === 2 || order.status === 3) && (
+                    <p className="mt-2">
+                      <span className="font-medium">Tracking Number:</span>{" "}
+                      {order.trackingNumber}
+                    </p>
+                  )}
                 </div>
 
                 <button

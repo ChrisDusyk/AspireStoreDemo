@@ -57,6 +57,7 @@ public class GetProcessingQueueOrdersQueryHandler(AppDbContext context) : IQuery
 				o.ShippingPostalCode,
 				o.OrderDate,
 				o.Status,
+				o.TrackingNumber,
 				o.TotalAmount,
 				[.. o.LineItems.Select(li => new Features.Order.OrderLineItem(
 					li.Id,

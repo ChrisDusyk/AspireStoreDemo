@@ -34,6 +34,7 @@ public class Order
 	public string ShippingPostalCode { get; set; } = string.Empty;
 	public DateTime OrderDate { get; set; }
 	public OrderStatus Status { get; set; }
+	public string? TrackingNumber { get; set; }
 	public decimal TotalAmount { get; set; }
 	public List<OrderLineItem> LineItems { get; set; } = new();
 }

@@ -12,6 +12,7 @@ public sealed record Order(
 	string ShippingPostalCode,
 	DateTime OrderDate,
 	OrderStatus Status,
+	string? TrackingNumber,
 	decimal TotalAmount,
 	List<OrderLineItem> LineItems
 );

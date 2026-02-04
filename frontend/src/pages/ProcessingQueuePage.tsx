@@ -34,6 +34,7 @@ function ProcessingQueuePage() {
   const [error, setError] = useState<string | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [updatingOrders, setUpdatingOrders] = useState<Set<string>>(new Set());
+  const [trackingNumbers, setTrackingNumbers] = useState<Map<string, string>>(new Map());
   const [secondsUntilRefresh, setSecondsUntilRefresh] = useState(60);
 
   // Filters
@@ -166,6 +167,12 @@ function ProcessingQueuePage() {
   };
 
   const handleMarkAsShipped = async (orderId: string) => {
+    const trackingNumber = trackingNumbers.get(orderId);
+    if (!trackingNumber || trackingNumber.trim() === "") {
+      setError("Tracking number is required");
+      return;
+    }
+
     setUpdatingOrders((prev) => new Set(prev).add(orderId));
     setError(null);
 
@@ -188,7 +195,9 @@ function ProcessingQueuePage() {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
+          body: JSON.stringify({ trackingNumber }),
         },
       );
 
@@ -497,17 +506,6 @@ function ProcessingQueuePage() {
                         {formatDate(order.orderDate)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                        {order.status === 1 && (
-                          <button
-                            onClick={() => handleMarkAsShipped(order.id)}
-                            disabled={updatingOrders.has(order.id)}
-                            className="bg-purple-600 hover:bg-purple-700 text-white py-1 px-3 rounded transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-                          >
-                            {updatingOrders.has(order.id)
-                              ? "Updating..."
-                              : "Mark as Shipped"}
-                          </button>
-                        )}
                         {order.status === 2 && (
                           <button
                             onClick={() => handleMarkAsDelivered(order.id)}
@@ -541,6 +539,12 @@ function ProcessingQueuePage() {
                                   {order.shippingCity}, {order.shippingState}{" "}
                                   {order.shippingPostalCode}
                                 </p>
+                                {order.trackingNumber && (
+                                  <p className="mt-2">
+                                    <span className="font-medium">Tracking Number:</span>{" "}
+                                    {order.trackingNumber}
+                                  </p>
+                                )}
                               </div>
                             </div>
 
@@ -562,6 +566,47 @@ function ProcessingQueuePage() {
                               </ul>
                             </div>
                           </div>
+
+                          {/* Tracking Number Input for Processing Orders */}
+                          {order.status === 1 && (
+                            <div className="mt-4 border-t border-gray-200 pt-4">
+                              <div className="max-w-md">
+                                <label
+                                  htmlFor={`tracking-${order.id}`}
+                                  className="block text-sm font-medium text-gray-700 mb-1"
+                                >
+                                  Tracking Number:
+                                </label>
+                                <input
+                                  type="text"
+                                  id={`tracking-${order.id}`}
+                                  value={trackingNumbers.get(order.id) || ""}
+                                  onChange={(e) =>
+                                    setTrackingNumbers(
+                                      new Map(trackingNumbers).set(
+                                        order.id,
+                                        e.target.value,
+                                      ),
+                                    )
+                                  }
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 text-sm mb-2"
+                                  placeholder="Enter tracking number"
+                                />
+                                <button
+                                  onClick={() => handleMarkAsShipped(order.id)}
+                                  disabled={
+                                    updatingOrders.has(order.id) ||
+                                    !trackingNumbers.get(order.id)?.trim()
+                                  }
+                                  className="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                >
+                                  {updatingOrders.has(order.id)
+                                    ? "Updating..."
+                                    : "Mark as Shipped"}
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     )}

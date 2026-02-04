@@ -35,28 +35,29 @@ public class GetAdminPendingOrdersQueryHandler(AppDbContext context) : IQueryHan
 				o.ShippingPostalCode,
 				o.OrderDate,
 				o.Status,
-				o.TotalAmount,
-				[.. o.LineItems.Select(li => new OrderLineItem(
-					li.Id,
-					li.OrderId,
-					li.ProductId,
-					li.ProductName,
-					li.ProductPrice,
-					li.Quantity
-				))]
-			)).ToList();
+			o.TrackingNumber,
+			o.TotalAmount,
+			[.. o.LineItems.Select(li => new OrderLineItem(
+				li.Id,
+				li.OrderId,
+				li.ProductId,
+				li.ProductName,
+				li.ProductPrice,
+				li.Quantity
+			))]
+		)).ToList();
 
-			var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+		var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
-			var pagedResponse = new PagedOrderResponse(
-				domainOrders,
-				totalCount,
-				page,
-				pageSize,
-				totalPages
-			);
+		var pagedResponse = new PagedOrderResponse(
+			domainOrders,
+			totalCount,
+			page,
+			pageSize,
+			totalPages
+		);
 
-			return Result<PagedOrderResponse>.Success(pagedResponse);
+		return Result<PagedOrderResponse>.Success(pagedResponse);
 		}
 		catch (Exception ex)
 		{

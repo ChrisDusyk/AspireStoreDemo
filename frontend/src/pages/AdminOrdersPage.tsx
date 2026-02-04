@@ -334,6 +334,12 @@ function AdminOrdersPage() {
                                     {order.shippingCity}, {order.shippingState}{" "}
                                     {order.shippingPostalCode}
                                   </p>
+                                  {order.trackingNumber && (
+                                    <p className="mt-2">
+                                      <span className="font-medium">Tracking Number:</span>{" "}
+                                      {order.trackingNumber}
+                                    </p>
+                                  )}
                                 </div>
                               </div>
 
