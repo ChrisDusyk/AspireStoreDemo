@@ -189,10 +189,10 @@ public static class OrderEndpoints
 			error => error switch
 			{
 				Error e when e.Code == ErrorCodes.NotFound => Results.NotFound(new { error = e.Message }),
-					_ => Results.Problem(detail: error.Message, statusCode: 500)
-				}
+				_ => Results.Problem(detail: error.Message, statusCode: 500)
+			}
 			);
-		})
+	})
 		.WithName("UpdateOrderToShipped");
 
 		adminOrders.MapPost("/{id}/deliver", async (

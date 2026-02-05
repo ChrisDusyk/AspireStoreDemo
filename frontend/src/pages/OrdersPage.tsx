@@ -130,7 +130,7 @@ function OrdersPage() {
                     </p>
                     <span
                       className={`inline-block px-3 py-1 text-sm font-semibold border rounded-full mt-2 ${getStatusBadgeClass(
-                        order.status
+                        order.status,
                       )}`}
                     >
                       {getStatusText(order.status)}
@@ -147,18 +147,19 @@ function OrdersPage() {
                     {order.shippingCity}, {order.shippingState}{" "}
                     {order.shippingPostalCode}
                   </p>
-                  {order.trackingNumber && (order.status === 2 || order.status === 3) && (
-                    <p className="mt-2">
-                      <span className="font-medium">Tracking Number:</span>{" "}
-                      {order.trackingNumber}
-                    </p>
-                  )}
+                  {order.trackingNumber &&
+                    (order.status === 2 || order.status === 3) && (
+                      <p className="mt-2">
+                        <span className="font-medium">Tracking Number:</span>{" "}
+                        {order.trackingNumber}
+                      </p>
+                    )}
                 </div>
 
                 <button
                   onClick={() =>
                     setExpandedOrderId(
-                      expandedOrderId === order.id ? null : order.id
+                      expandedOrderId === order.id ? null : order.id,
                     )
                   }
                   className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center gap-1"

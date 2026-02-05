@@ -336,7 +336,9 @@ function AdminOrdersPage() {
                                   </p>
                                   {order.trackingNumber && (
                                     <p className="mt-2">
-                                      <span className="font-medium">Tracking Number:</span>{" "}
+                                      <span className="font-medium">
+                                        Tracking Number:
+                                      </span>{" "}
                                       {order.trackingNumber}
                                     </p>
                                   )}

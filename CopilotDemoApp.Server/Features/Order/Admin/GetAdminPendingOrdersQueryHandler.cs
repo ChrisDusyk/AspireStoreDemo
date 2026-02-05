@@ -47,17 +47,17 @@ public class GetAdminPendingOrdersQueryHandler(AppDbContext context) : IQueryHan
 			))]
 		)).ToList();
 
-		var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+			var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
-		var pagedResponse = new PagedOrderResponse(
-			domainOrders,
-			totalCount,
-			page,
-			pageSize,
-			totalPages
-		);
+			var pagedResponse = new PagedOrderResponse(
+				domainOrders,
+				totalCount,
+				page,
+				pageSize,
+				totalPages
+			);
 
-		return Result<PagedOrderResponse>.Success(pagedResponse);
+			return Result<PagedOrderResponse>.Success(pagedResponse);
 		}
 		catch (Exception ex)
 		{

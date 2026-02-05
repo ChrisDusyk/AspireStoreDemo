@@ -34,7 +34,9 @@ function ProcessingQueuePage() {
   const [error, setError] = useState<string | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [updatingOrders, setUpdatingOrders] = useState<Set<string>>(new Set());
-  const [trackingNumbers, setTrackingNumbers] = useState<Map<string, string>>(new Map());
+  const [trackingNumbers, setTrackingNumbers] = useState<Map<string, string>>(
+    new Map(),
+  );
   const [secondsUntilRefresh, setSecondsUntilRefresh] = useState(60);
 
   // Filters
@@ -541,7 +543,9 @@ function ProcessingQueuePage() {
                                 </p>
                                 {order.trackingNumber && (
                                   <p className="mt-2">
-                                    <span className="font-medium">Tracking Number:</span>{" "}
+                                    <span className="font-medium">
+                                      Tracking Number:
+                                    </span>{" "}
                                     {order.trackingNumber}
                                   </p>
                                 )}
