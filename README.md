@@ -16,6 +16,7 @@ graph TB
         PG[(PostgreSQL<br/>Database: appdb<br/>+ Data Volume)]
         KC[Keycloak<br/>Port: 8080<br/>Realm: copilotdemoapp]
         PGA[pgAdmin<br/>Database UI]
+        AZ[Azure Storage<br/>Emulator: Azurite<br/>Blobs: product-images]
     end
 
     subgraph "Application Services"
@@ -25,13 +26,16 @@ graph TB
 
     AppHost -.manages.-> PG
     AppHost -.manages.-> KC
+    AppHost -.manages.-> AZ
     AppHost -.manages.-> API
     AppHost -.manages.-> FE
 
     PG --> PGA
     API -->|WaitFor| PG
     API -->|WaitFor| KC
+    API -->|WaitFor| AZ
     API -->|Validates JWT| KC
+    API -->|Stores Images| AZ
     FE -->|WaitFor + Proxies /api| API
     FE -->|Authenticates via OIDC| KC
     API -->|Queries| PG
@@ -39,6 +43,7 @@ graph TB
     style AppHost fill:#e1f5ff
     style PG fill:#336791
     style KC fill:#4d4d4d
+    style AZ fill:#0078d4
     style API fill:#512bd4
     style FE fill:#61dafb
 ```
@@ -46,8 +51,9 @@ graph TB
 ### Service Dependencies
 
 - **PostgreSQL**: Database server with persistent volume and pgAdmin UI
+- **Azure Storage Emulator (Azurite)**: Blob storage for product images with local emulation
 - **Keycloak**: Identity and Access Management server (port 8080) with preconfigured realm
-- **Server**: ASP.NET Core Web API that waits for both database and Keycloak to be ready
+- **Server**: ASP.NET Core Web API that waits for database, blob storage, and Keycloak to be ready
 - **Frontend**: React SPA that waits for the server and proxies API requests
 
 ### Authentication Flow
@@ -72,6 +78,7 @@ graph TB
 **Key Resources:**
 
 - PostgreSQL database with data volume
+- Azure Storage emulator (Azurite) with blob container for product images
 - Keycloak server with realm import from [copilotdemoapp-realm.json](CopilotDemoApp.AppHost/copilotdemoapp-realm.json)
 - ASP.NET Core API with health checks
 - Vite-based React frontend
@@ -82,7 +89,10 @@ ASP.NET Core Web API using Minimal APIs and vertical slice architecture. Impleme
 
 **Features:**
 
-- **Product Management**: Public product catalog with pagination and filtering
+- **Product Management**: Public product catalog with pagination, filtering, and image support
+  - Product images stored in Azure Blob Storage (local Azurite emulator)
+  - Admin-only image upload with validation (JPEG/PNG/WebP, max 5MB)
+  - Automatic old image deletion when uploading new images
 - **Order Management**: User-specific order creation and retrieval
 - **Authentication**: Keycloak JWT Bearer authentication with role-based authorization
 - **Database**: Entity Framework Core with PostgreSQL and auto-applied migrations
@@ -109,6 +119,7 @@ React 19 + Vite 7 single-page application with TypeScript and Tailwind CSS v4.
 - **Routing**: React Router with page-based organization
 - **Styling**: Tailwind CSS v4 via `@tailwindcss/vite` (no custom CSS)
 - **State Management**: React Context API for cart functionality
+- **Product Images**: Display with placeholder fallback, admin upload with preview
 - **API Integration**: Vite proxy forwards `/api` to server
 
 **Project Structure:**
@@ -303,6 +314,7 @@ For detailed coding standards, patterns, and Aspire guidance, see [AGENTS.md](AG
 
 - **PostgreSQL**: Relational database with data volume persistence
 - **pgAdmin**: Web-based PostgreSQL administration tool
+- **Azure Storage Emulator (Azurite)**: Local blob storage emulation for development
 - **Docker**: Container runtime for infrastructure services
 
 ## Resources
