@@ -20,4 +20,6 @@ public static class ErrorCodes
 	public const string ValidationFailed = "ValidationFailed";
 	public const string Unauthorized = "Unauthorized";
 	public const string DatabaseError = "DatabaseError";
+	public const string InvalidFileType = "InvalidFileType";
+	public const string FileTooLarge = "FileTooLarge";
 }

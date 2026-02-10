@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 
 import ErrorDisplay from "../components/ErrorDisplay";
+import ProductImage from "../components/ProductImage";
 import type { ProductResponse } from "../types/product";
 import { useCartContext } from "../contexts/CartContext";
 
@@ -106,7 +107,7 @@ function HomePage() {
             {products.map((product) => (
               <div
                 key={product.id}
-                className="bg-white rounded shadow p-6 flex flex-col justify-between hover:ring-2 hover:ring-blue-400 transition"
+                className="bg-white rounded shadow overflow-hidden flex flex-col hover:ring-2 hover:ring-blue-400 transition"
               >
                 <Link
                   to={`/products/${product.id}`}
@@ -116,26 +117,35 @@ function HomePage() {
                     product.name ?? "Unnamed Product"
                   }`}
                 >
-                  <div>
-                    <h2 className="text-xl font-semibold mb-2">
-                      {product.name ?? "Unnamed Product"}
-                    </h2>
-                    <p className="text-gray-600 mb-4">
-                      {product.description ?? "No description."}
-                    </p>
-                  </div>
-                  <div className="text-lg font-bold text-blue-600 mb-4">
-                    {product.price !== null
-                      ? `$${product.price.toFixed(2)}`
-                      : "Price not available"}
+                  <ProductImage
+                    imageUrl={product.imageUrl}
+                    alt={product.name ?? "Product"}
+                    className="w-full h-48 object-cover"
+                  />
+                  <div className="p-6 flex flex-col flex-grow">
+                    <div>
+                      <h2 className="text-xl font-semibold mb-2">
+                        {product.name ?? "Unnamed Product"}
+                      </h2>
+                      <p className="text-gray-600 mb-4">
+                        {product.description ?? "No description."}
+                      </p>
+                    </div>
+                    <div className="text-lg font-bold text-blue-600 mb-4 mt-auto">
+                      {product.price !== null
+                        ? `$${product.price.toFixed(2)}`
+                        : "Price not available"}
+                    </div>
                   </div>
                 </Link>
-                <button
-                  onClick={() => addItem(product.id)}
-                  className="w-full px-4 py-2 rounded bg-green-500 text-white font-semibold hover:bg-green-600 transition-colors"
-                >
-                  Add to Cart
-                </button>
+                <div className="p-6 pt-0">
+                  <button
+                    onClick={() => addItem(product.id)}
+                    className="w-full px-4 py-2 rounded bg-green-500 text-white font-semibold hover:bg-green-600 transition-colors"
+                  >
+                    Add to Cart
+                  </button>
+                </div>
               </div>
             ))}
           </div>

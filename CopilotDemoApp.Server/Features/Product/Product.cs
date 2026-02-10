@@ -10,5 +10,6 @@ public sealed record Product(
 	Option<decimal> Price,
 	bool IsActive,
 	DateTime CreatedDate,
-	DateTime UpdatedDate
+	DateTime UpdatedDate,
+	Option<string> ImageUrl
 );

@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace CopilotDemoApp.Server.Features.Product;
 
 // Product DTOs
-public record ProductCreateRequest(string Name, string Description, decimal Price, bool IsActive);
-public record ProductUpdateRequest(string Name, string Description, decimal Price, bool IsActive);
+public record ProductCreateRequest(string Name, string Description, decimal Price, bool IsActive, string? ImageUrl = null);
+public record ProductUpdateRequest(string Name, string Description, decimal Price, bool IsActive, string? ImageUrl = null);
 
 public static class ProductEndpoints
 {
@@ -99,7 +99,8 @@ public static class ProductEndpoints
 				request.Name,
 				request.Description,
 				request.Price,
-				request.IsActive
+				request.IsActive,
+				request.ImageUrl
 			);
 
 			var result = await handler.HandleAsync(command);
@@ -127,7 +128,8 @@ public static class ProductEndpoints
 				request.Name,
 				request.Description,
 				request.Price,
-				request.IsActive
+				request.IsActive,
+				request.ImageUrl
 			);
 			var result = await handler.HandleAsync(command);
 			return result.Match(
@@ -142,6 +144,43 @@ public static class ProductEndpoints
 			);
 		})
 		.WithName("UpdateProduct");
+
+		adminProducts.MapPost("/{id:guid}/image", async (
+			Guid id,
+			IFormFile file,
+			[FromServices] ICommandHandler<Admin.UploadProductImageCommand, ProductResponse> handler
+		) =>
+		{
+			if (file is null || file.Length == 0)
+			{
+				return Results.BadRequest(new { error = "No file uploaded" });
+			}
+
+			using var stream = file.OpenReadStream();
+			var command = new Admin.UploadProductImageCommand(
+				id,
+				stream,
+				file.FileName,
+				file.ContentType
+			);
+
+			var result = await handler.HandleAsync(command);
+
+			return result.Match(
+				response => Results.Ok(response),
+				error => error switch
+				{
+					Error e when e.Code == ErrorCodes.NotFound => Results.NotFound(new { error = e.Message }),
+					Error e when e.Code == ErrorCodes.InvalidFileType => Results.BadRequest(new { error = e.Message }),
+					Error e when e.Code == ErrorCodes.FileTooLarge => Results.BadRequest(new { error = e.Message }),
+					Error e when e.Code == ErrorCodes.ValidationFailed => Results.BadRequest(new { error = e.Message }),
+					Error e when e.Code == ErrorCodes.DatabaseError => Results.Problem(detail: error.Message, statusCode: 500),
+					_ => Results.Problem(detail: error.Message, statusCode: 500)
+				}
+			);
+		})
+		.WithName("UploadProductImage")
+		.DisableAntiforgery(); // Required for file uploads
 
 		adminProducts.MapDelete("/{id:guid}", (Guid id) =>
 		{

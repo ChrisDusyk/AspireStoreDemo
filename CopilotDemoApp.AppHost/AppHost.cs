@@ -10,6 +10,12 @@ var postgres = builder
 var db = postgres.AddDatabase("appdb");
 var keycloakdb = postgres.AddDatabase("keycloakdb");
 
+// Add Azure Storage emulator with blob container
+var storage = builder
+	.AddAzureStorage("storage")
+	.RunAsEmulator();
+var blobs = storage.AddBlobs("blobs");
+
 // Add Keycloak with realm import
 var keycloak = builder
 	.AddKeycloak("keycloak", port: 8080)
@@ -22,6 +28,7 @@ var keycloak = builder
 
 var server = builder.AddProject<Projects.CopilotDemoApp_Server>("server")
 	.WithReference(db).WaitFor(db)
+	.WithReference(blobs).WaitFor(blobs)
 	.WithReference(keycloak).WaitFor(keycloak)
 	.WithHttpHealthCheck("/health")
 	.WithExternalHttpEndpoints();

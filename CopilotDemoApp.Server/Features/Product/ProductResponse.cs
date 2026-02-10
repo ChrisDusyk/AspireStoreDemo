@@ -9,5 +9,6 @@ public sealed record ProductResponse(
 	decimal? Price,
 	bool IsActive,
 	DateTime CreatedDate,
-	DateTime UpdatedDate
+	DateTime UpdatedDate,
+	string? ImageUrl
 );

@@ -18,7 +18,8 @@ public class ProductResponseMapperTests
 			Option<decimal>.Some(10.5m),
 			true,
 			DateTime.UtcNow,
-			DateTime.UtcNow.AddDays(1)
+			DateTime.UtcNow.AddDays(1),
+			Option<string>.Some("https://example.com/image.jpg")
 		);
 
 		var response = ProductResponseMapper.MapDomainToResponse(domain);
@@ -30,6 +31,7 @@ public class ProductResponseMapperTests
 		Assert.True(response.IsActive);
 		Assert.Equal(domain.CreatedDate, response.CreatedDate);
 		Assert.Equal(domain.UpdatedDate, response.UpdatedDate);
+		Assert.Equal("https://example.com/image.jpg", response.ImageUrl);
 	}
 
 	[Fact]
@@ -42,7 +44,8 @@ public class ProductResponseMapperTests
 			Option<decimal>.None(),
 			false,
 			DateTime.UtcNow,
-			DateTime.UtcNow.AddDays(1)
+			DateTime.UtcNow.AddDays(1),
+			Option<string>.None()
 		);
 
 		var response = ProductResponseMapper.MapDomainToResponse(domain);
@@ -50,6 +53,7 @@ public class ProductResponseMapperTests
 		Assert.Null(response.Name);
 		Assert.Null(response.Description);
 		Assert.Null(response.Price);
+		Assert.Null(response.ImageUrl);
 		Assert.Equal(domain.UpdatedDate, response.UpdatedDate);
 	}
 
@@ -58,8 +62,8 @@ public class ProductResponseMapperTests
 	{
 		var products = new List<CopilotDemoApp.Server.Features.Product.Product>
 		{
-			new(Guid.NewGuid(), Option<string>.Some("A"), Option<string>.None(), Option<decimal>.Some(1), true, DateTime.UtcNow, DateTime.UtcNow.AddDays(1)),
-			new(Guid.NewGuid(), Option<string>.Some("B"), Option<string>.None(), Option<decimal>.Some(2), true, DateTime.UtcNow, DateTime.UtcNow.AddDays(2))
+			new(Guid.NewGuid(), Option<string>.Some("A"), Option<string>.None(), Option<decimal>.Some(1), true, DateTime.UtcNow, DateTime.UtcNow.AddDays(1), Option<string>.None()),
+			new(Guid.NewGuid(), Option<string>.Some("B"), Option<string>.None(), Option<decimal>.Some(2), true, DateTime.UtcNow, DateTime.UtcNow.AddDays(2), Option<string>.None())
 		};
 		var totalCount = 27;
 		var page = 2;

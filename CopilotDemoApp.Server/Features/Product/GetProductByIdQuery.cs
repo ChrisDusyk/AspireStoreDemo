@@ -25,7 +25,8 @@ public sealed class GetProductByIdQueryHandler(AppDbContext db) : IQueryHandler<
 				entity.Price.HasValue ? Option<decimal>.Some(entity.Price.Value) : Option<decimal>.None(),
 				entity.IsActive,
 				entity.CreatedDate,
-				entity.UpdatedDate
+				entity.UpdatedDate,
+				Option<string>.From(entity.ImageUrl)
 			);
 			var response = ProductResponseMapper.MapDomainToResponse(domain);
 			return Result<Option<ProductResponse>>.Success(Option<ProductResponse>.Some(response));

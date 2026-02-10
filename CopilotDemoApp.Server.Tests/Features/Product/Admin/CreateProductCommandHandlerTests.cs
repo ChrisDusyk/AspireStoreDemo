@@ -32,6 +32,32 @@ public class CreateProductCommandHandlerTests
 		Assert.Equal("Test Product", product.Name);
 		Assert.Equal(10.99m, product.Price);
 		Assert.True(product.IsActive);
+		Assert.Null(product.ImageUrl);
+	}
+
+	[Fact]
+	public async Task HandleAsync_WithImageUrl_CreatesProductWithImage()
+	{
+		// Arrange
+		var options = new DbContextOptionsBuilder<AppDbContext>()
+			.UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+			.Options;
+
+		using var context = new AppDbContext(options);
+		var handler = new CreateProductCommandHandler(context);
+		var imageUrl = "https://storage.blob.core.windows.net/product-images/test.jpg";
+		var command = new CreateProductCommand("Test Product", "Description", 10.99m, true, imageUrl);
+
+		// Act
+		var result = await handler.HandleAsync(command, TestContext.Current.CancellationToken);
+
+		// Assert
+		Assert.True(result.IsSuccess);
+		var productId = result.Value;
+		
+		var product = await context.Products.FindAsync([productId], TestContext.Current.CancellationToken);
+		Assert.NotNull(product);
+		Assert.Equal(imageUrl, product.ImageUrl);
 	}
 
 	[Fact]

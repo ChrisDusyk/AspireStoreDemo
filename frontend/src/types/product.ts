@@ -6,4 +6,5 @@ export interface ProductResponse {
   isActive: boolean;
   createdDate: string;
   updatedDate: string;
+  imageUrl: string | null;
 }

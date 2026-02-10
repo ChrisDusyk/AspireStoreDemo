@@ -6,5 +6,6 @@ public record CreateProductCommand(
 	string Name,
 	string Description,
 	decimal Price,
-	bool IsActive
+	bool IsActive,
+	string? ImageUrl = null
 ) : ICommand<Guid>;

@@ -79,6 +79,12 @@ builder.Services.AddProblemDetails();
 // Add AppDbContext using Aspire's EF Core/Postgres integration
 builder.AddNpgsqlDbContext<CopilotDemoApp.Server.Database.AppDbContext>("appdb");
 
+// Add Azure Blob Storage client
+builder.AddAzureBlobServiceClient("blobs");
+
+// Register ProductImageService
+builder.Services.AddScoped<IProductImageService, ProductImageService>();
+
 builder.Services.AddCqrsHandlers();
 
 // Configure HttpClient for OTLP relay to accept development certificates

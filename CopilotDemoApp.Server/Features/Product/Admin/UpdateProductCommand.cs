@@ -7,5 +7,6 @@ public sealed record UpdateProductCommand(
 	string Name,
 	string Description,
 	decimal Price,
-	bool IsActive
+	bool IsActive,
+	string? ImageUrl = null
 ) : ICommand<ProductResponse>;

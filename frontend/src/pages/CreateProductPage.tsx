@@ -15,6 +15,24 @@ function CreateProductPage() {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [isActive, setIsActive] = useState(true);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setImageFile(null);
+      setImagePreview(null);
+    }
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -49,6 +67,31 @@ function CreateProductPage() {
         throw new Error(
           errorData?.error || `Failed to create product: ${res.status}`,
         );
+      }
+
+      const createdProduct = await res.json();
+      const productId = createdProduct.id;
+
+      // Upload image if selected
+      if (imageFile && productId) {
+        const formData = new FormData();
+        formData.append("file", imageFile);
+
+        const uploadRes = await fetch(
+          `${apiBaseUrl}/api/admin/products/${productId}/image`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            body: formData,
+          },
+        );
+
+        if (!uploadRes.ok) {
+          // Product was created but image upload failed
+          console.error("Failed to upload image");
+        }
       }
 
       // Navigate back with success message
@@ -164,6 +207,33 @@ function CreateProductPage() {
             >
               Active
             </label>
+          </div>
+
+          <div>
+            <label
+              htmlFor="image"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Product Image
+            </label>
+            <input
+              type="file"
+              id="image"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleImageChange}
+              disabled={saving}
+              className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:bg-gray-100"
+            />
+            {imagePreview && (
+              <div className="mt-4">
+                <p className="text-sm text-gray-600 mb-2">Preview:</p>
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="w-48 h-48 object-cover rounded border border-gray-300"
+                />
+              </div>
+            )}
           </div>
         </div>
 

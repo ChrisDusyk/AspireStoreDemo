@@ -39,6 +39,7 @@ public class UpdateProductCommandHandler(AppDbContext db) : ICommandHandler<Upda
 			entity.Description = command.Description;
 			entity.Price = command.Price;
 			entity.IsActive = command.IsActive;
+			entity.ImageUrl = command.ImageUrl;
 			entity.UpdatedDate = DateTime.UtcNow;
 
 			await db.SaveChangesAsync(cancellationToken);

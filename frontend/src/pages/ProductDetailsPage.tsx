@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 
+import ProductImage from "../components/ProductImage";
 import type { ProductResponse } from "../types/product";
 import { useCartContext } from "../contexts/CartContext";
 
@@ -93,6 +94,11 @@ function ProductDetailsPage() {
       >
         ← Back to Products
       </Link>
+      <ProductImage
+        imageUrl={product.imageUrl}
+        alt={product.name ?? "Product"}
+        className="w-full h-96 object-cover rounded mb-6"
+      />
       <h1 className="text-3xl font-bold mb-2">
         {product.name ?? "Unnamed Product"}
       </h1>

@@ -14,6 +14,7 @@ public static class ProductMapper
 			entity.Price.HasValue ? Option<decimal>.Some(entity.Price.Value) : Option<decimal>.None(),
 			entity.IsActive,
 			entity.CreatedDate,
-			entity.UpdatedDate
+			entity.UpdatedDate,
+			Option<string>.From(entity.ImageUrl)
 		);
 }

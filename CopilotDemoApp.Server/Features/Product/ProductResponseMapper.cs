@@ -14,7 +14,8 @@ public static class ProductResponseMapper
 			domain.Price.Match<decimal?>(p => p, () => null),
 			domain.IsActive,
 			domain.CreatedDate,
-			domain.UpdatedDate
+			domain.UpdatedDate,
+			domain.ImageUrl.Match<string?>(i => i, () => null)
 		);
 
 	public static PagedProductResponse MapToPagedResponse(

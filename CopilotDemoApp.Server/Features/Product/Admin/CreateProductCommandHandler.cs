@@ -32,7 +32,8 @@ public class CreateProductCommandHandler(AppDbContext db) : ICommandHandler<Crea
 				Price = command.Price,
 				IsActive = command.IsActive,
 				CreatedDate = DateTime.UtcNow,
-				UpdatedDate = DateTime.UtcNow
+				UpdatedDate = DateTime.UtcNow,
+				ImageUrl = command.ImageUrl
 			};
 
 			db.Products.Add(entity);

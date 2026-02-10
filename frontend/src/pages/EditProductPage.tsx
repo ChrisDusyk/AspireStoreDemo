@@ -18,6 +18,10 @@ function EditProductPage() {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [isActive, setIsActive] = useState(true);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Track original values for dirty detection
   const [originalValues, setOriginalValues] = useState({
@@ -25,13 +29,15 @@ function EditProductPage() {
     description: "",
     price: "",
     isActive: true,
+    imageUrl: null as string | null,
   });
 
   const isDirty =
     name !== originalValues.name ||
     description !== originalValues.description ||
     price !== originalValues.price ||
-    isActive !== originalValues.isActive;
+    isActive !== originalValues.isActive ||
+    imageFile !== null;
 
   useEffect(() => {
     async function fetchProduct() {
@@ -58,17 +64,20 @@ function EditProductPage() {
         const nameValue = product.name || "";
         const descValue = product.description || "";
         const priceValue = product.price?.toString() || "";
+        const imageUrlValue = product.imageUrl || null;
 
         setName(nameValue);
         setDescription(descValue);
         setPrice(priceValue);
         setIsActive(product.isActive);
+        setCurrentImageUrl(imageUrlValue);
 
         setOriginalValues({
           name: nameValue,
           description: descValue,
           price: priceValue,
           isActive: product.isActive,
+          imageUrl: imageUrlValue,
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load product");
@@ -79,6 +88,22 @@ function EditProductPage() {
 
     fetchProduct();
   }, [id]);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setImageFile(null);
+      setImagePreview(null);
+    }
+  };
 
   const handleCancel = () => {
     if (isDirty) {
@@ -123,6 +148,30 @@ function EditProductPage() {
         throw new Error(
           errorData?.error || `Failed to update product: ${res.status}`
         );
+      }
+
+      // Upload image if selected
+      if (imageFile && id) {
+        setUploadingImage(true);
+        const formData = new FormData();
+        formData.append("file", imageFile);
+
+        const uploadRes = await fetch(
+          `${apiBaseUrl}/api/admin/products/${id}/image`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            body: formData,
+          },
+        );
+
+        if (!uploadRes.ok) {
+          // Product was updated but image upload failed
+          console.error("Failed to upload image");
+        }
+        setUploadingImage(false);
       }
 
       // Navigate back with success message
@@ -260,6 +309,46 @@ function EditProductPage() {
             >
               Active
             </label>
+          </div>
+
+          <div>
+            <label
+              htmlFor="image"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Product Image
+            </label>
+            <input
+              type="file"
+              id="image"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleImageChange}
+              disabled={saving || uploadingImage}
+              className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:bg-gray-100"
+            />
+            {currentImageUrl && !imagePreview && (
+              <div className="mt-4">
+                <p className="text-sm text-gray-600 mb-2">Current image:</p>
+                <img
+                  src={currentImageUrl}
+                  alt="Current product"
+                  className="w-48 h-48 object-cover rounded border border-gray-300"
+                />
+              </div>
+            )}
+            {imagePreview && (
+              <div className="mt-4">
+                <p className="text-sm text-gray-600 mb-2">Preview:</p>
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="w-48 h-48 object-cover rounded border border-gray-300"
+                />
+              </div>
+            )}
+            {uploadingImage && (
+              <p className="text-sm text-blue-600 mt-2">Uploading image...</p>
+            )}
           </div>
         </div>
 
