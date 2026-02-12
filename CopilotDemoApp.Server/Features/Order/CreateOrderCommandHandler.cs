@@ -1,10 +1,11 @@
 using CopilotDemoApp.Server.Database;
 using CopilotDemoApp.Server.Shared;
+using CopilotDemoApp.Server.Shared.Messages;
 using Microsoft.EntityFrameworkCore;
 
 namespace CopilotDemoApp.Server.Features.Order;
 
-public class CreateOrderCommandHandler(AppDbContext context) : ICommandHandler<CreateOrderCommand, Order>
+public class CreateOrderCommandHandler(AppDbContext context, IOrderMessagePublisher messagePublisher) : ICommandHandler<CreateOrderCommand, Order>
 {
 	public async Task<Result<Order>> HandleAsync(CreateOrderCommand command, CancellationToken cancellationToken = default)
 	{
@@ -90,6 +91,36 @@ public class CreateOrderCommandHandler(AppDbContext context) : ICommandHandler<C
 
 			context.Orders.Add(orderEntity);
 			await context.SaveChangesAsync(cancellationToken);
+
+			// Publish OrderCreatedEvent to message queue
+			var orderCreatedEvent = new OrderCreatedEvent(
+				OrderId: orderEntity.Id,
+				UserId: orderEntity.UserId,
+				UserEmail: orderEntity.UserEmail,
+				OrderDate: orderEntity.OrderDate,
+				TotalAmount: orderEntity.TotalAmount,
+				ShippingAddress: new ShippingAddressInfo(
+					Address: orderEntity.ShippingAddress,
+					City: orderEntity.ShippingCity,
+					Province: orderEntity.ShippingProvince,
+					PostalCode: orderEntity.ShippingPostalCode
+				),
+				LineItems: orderEntity.LineItems.Select(li => new OrderLineItemInfo(
+					ProductId: li.ProductId,
+					ProductName: li.ProductName,
+					Quantity: li.Quantity,
+					Price: li.ProductPrice
+				)).ToList()
+			);
+
+			// Publish OrderCreatedEvent to message queue (best-effort, don't fail order creation)
+			var publishResult = await messagePublisher.PublishOrderCreatedAsync(orderCreatedEvent, cancellationToken);
+			if (!publishResult.IsSuccess)
+			{
+				// Message publishing failed, but order was successfully saved
+				// Error is already logged by OrderMessagePublisher
+				context.ChangeTracker.Clear(); // Prevent tracking issues
+			}
 
 			var domainOrder = new Order(
 				orderEntity.Id,

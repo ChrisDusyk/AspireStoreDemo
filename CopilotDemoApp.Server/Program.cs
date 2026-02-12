@@ -82,8 +82,14 @@ builder.AddNpgsqlDbContext<CopilotDemoApp.Server.Database.AppDbContext>("appdb")
 // Add Azure Blob Storage client
 builder.AddAzureBlobServiceClient("blobs");
 
+// Add Azure Service Bus client
+builder.AddAzureServiceBusClient("servicebus");
+
 // Register ProductImageService
 builder.Services.AddScoped<IProductImageService, ProductImageService>();
+
+// Register OrderMessagePublisher
+builder.Services.AddSingleton<IOrderMessagePublisher, OrderMessagePublisher>();
 
 builder.Services.AddCqrsHandlers();
 
@@ -131,19 +137,19 @@ app.MapPost("/api/otlp/{**path}", async (HttpContext context, IHttpClientFactory
 
 	var otlpHeaders = app.Configuration["OTEL_EXPORTER_OTLP_HEADERS"];
 
-	app.Logger.LogInformation("OTLP relay received request with path: '{Path}', headers: '{Headers}', content-type: '{ContentType}'", 
-		path ?? "(empty)", 
+	app.Logger.LogInformation("OTLP relay received request with path: '{Path}', headers: '{Headers}', content-type: '{ContentType}'",
+		path ?? "(empty)",
 		otlpHeaders ?? "(none)",
 		context.Request.ContentType ?? "(none)");
 
 	var client = httpClientFactory.CreateClient();
-	var targetUrl = string.IsNullOrEmpty(path) 
+	var targetUrl = string.IsNullOrEmpty(path)
 		? otlpEndpoint.TrimEnd('/')
 		: $"{otlpEndpoint.TrimEnd('/')}/{path}";
 
 	using var requestMessage = new HttpRequestMessage(HttpMethod.Post, targetUrl);
 	requestMessage.Version = new Version(2, 0);
-	
+
 	// Read and buffer the request body
 	using var memoryStream = new MemoryStream();
 	await context.Request.Body.CopyToAsync(memoryStream);
@@ -156,11 +162,11 @@ app.MapPost("/api/otlp/{**path}", async (HttpContext context, IHttpClientFactory
 		requestMessage.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(context.Request.ContentType);
 		app.Logger.LogInformation("Set Content-Type: {ContentType}", context.Request.ContentType);
 	}
-	
+
 	// Copy other relevant headers from the original request
 	foreach (var header in context.Request.Headers)
 	{
-		if (header.Key.StartsWith("x-", StringComparison.OrdinalIgnoreCase) || 
+		if (header.Key.StartsWith("x-", StringComparison.OrdinalIgnoreCase) ||
 			header.Key.Equals("user-agent", StringComparison.OrdinalIgnoreCase))
 		{
 			requestMessage.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray());
@@ -187,13 +193,13 @@ app.MapPost("/api/otlp/{**path}", async (HttpContext context, IHttpClientFactory
 	try
 	{
 		var response = await client.SendAsync(requestMessage);
-		
+
 		if (!response.IsSuccessStatusCode)
 		{
 			var responseBody = await response.Content.ReadAsStringAsync();
 			app.Logger.LogWarning("OTLP relay failed: {StatusCode}, Response: {ResponseBody}", response.StatusCode, responseBody);
 		}
-		
+
 		app.Logger.LogInformation("OTLP relay forwarded to {TargetUrl}, response status: {StatusCode}", targetUrl, response.StatusCode);
 		return Results.StatusCode((int)response.StatusCode);
 	}

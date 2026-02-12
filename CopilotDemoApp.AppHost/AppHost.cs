@@ -16,6 +16,12 @@ var storage = builder
 	.RunAsEmulator();
 var blobs = storage.AddBlobs("blobs");
 
+// Add Azure Service Bus emulator with orders queue
+var serviceBus = builder
+	.AddAzureServiceBus("servicebus")
+	.RunAsEmulator();
+var orderQueue = serviceBus.AddServiceBusQueue("orders");
+
 // Add Keycloak with realm import
 var keycloak = builder
 	.AddKeycloak("keycloak", port: 8080)
@@ -29,6 +35,7 @@ var keycloak = builder
 var server = builder.AddProject<Projects.CopilotDemoApp_Server>("server")
 	.WithReference(db).WaitFor(db)
 	.WithReference(blobs).WaitFor(blobs)
+	.WithReference(serviceBus).WaitFor(serviceBus)
 	.WithReference(keycloak).WaitFor(keycloak)
 	.WithHttpHealthCheck("/health")
 	.WithExternalHttpEndpoints();

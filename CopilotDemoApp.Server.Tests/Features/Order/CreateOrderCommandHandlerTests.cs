@@ -1,11 +1,22 @@
 using CopilotDemoApp.Server.Database;
 using CopilotDemoApp.Server.Features.Order;
+using CopilotDemoApp.Server.Shared;
+using CopilotDemoApp.Server.Shared.Messages;
 using Microsoft.EntityFrameworkCore;
+using NSubstitute;
 
 namespace CopilotDemoApp.Server.Tests.Features.Order;
 
 public class CreateOrderCommandHandlerTests
 {
+	private static IOrderMessagePublisher CreateMockPublisher()
+	{
+		var mockPublisher = Substitute.For<IOrderMessagePublisher>();
+		mockPublisher.PublishOrderCreatedAsync(Arg.Any<OrderCreatedEvent>(), Arg.Any<CancellationToken>())
+			.Returns(Result<Unit>.Success(Unit.Value));
+		return mockPublisher;
+	}
+
 	[Fact]
 	public async Task Creates_Order_With_Valid_Command()
 	{
@@ -14,7 +25,8 @@ public class CreateOrderCommandHandlerTests
 			.UseInMemoryDatabase(Guid.NewGuid().ToString())
 			.Options;
 		var db = new AppDbContext(options);
-		var handler = new CreateOrderCommandHandler(db);
+		var mockPublisher = CreateMockPublisher();
+		var handler = new CreateOrderCommandHandler(db, mockPublisher);
 
 		var command = new CreateOrderCommand(
 			UserId: "user123",
@@ -66,7 +78,8 @@ public class CreateOrderCommandHandlerTests
 			.UseInMemoryDatabase(Guid.NewGuid().ToString())
 			.Options;
 		var db = new AppDbContext(options);
-		var handler = new CreateOrderCommandHandler(db);
+		var mockPublisher = CreateMockPublisher();
+		var handler = new CreateOrderCommandHandler(db, mockPublisher);
 
 		var command = new CreateOrderCommand(
 			UserId: "user123",
@@ -102,7 +115,8 @@ public class CreateOrderCommandHandlerTests
 			.UseInMemoryDatabase(Guid.NewGuid().ToString())
 			.Options;
 		var db = new AppDbContext(options);
-		var handler = new CreateOrderCommandHandler(db);
+		var mockPublisher = CreateMockPublisher();
+		var handler = new CreateOrderCommandHandler(db, mockPublisher);
 
 		var command = new CreateOrderCommand(
 			UserId: "user123",
@@ -138,7 +152,8 @@ public class CreateOrderCommandHandlerTests
 			.UseInMemoryDatabase(Guid.NewGuid().ToString())
 			.Options;
 		var db = new AppDbContext(options);
-		var handler = new CreateOrderCommandHandler(db);
+		var mockPublisher = CreateMockPublisher();
+		var handler = new CreateOrderCommandHandler(db, mockPublisher);
 
 		var command = new CreateOrderCommand(
 			UserId: "user123",
@@ -174,7 +189,8 @@ public class CreateOrderCommandHandlerTests
 			.UseInMemoryDatabase(Guid.NewGuid().ToString())
 			.Options;
 		var db = new AppDbContext(options);
-		var handler = new CreateOrderCommandHandler(db);
+		var mockPublisher = CreateMockPublisher();
+		var handler = new CreateOrderCommandHandler(db, mockPublisher);
 
 		var command = new CreateOrderCommand(
 			UserId: "user123",
@@ -210,7 +226,8 @@ public class CreateOrderCommandHandlerTests
 			.UseInMemoryDatabase(Guid.NewGuid().ToString())
 			.Options;
 		var db = new AppDbContext(options);
-		var handler = new CreateOrderCommandHandler(db);
+		var mockPublisher = CreateMockPublisher();
+		var handler = new CreateOrderCommandHandler(db, mockPublisher);
 
 		var command = new CreateOrderCommand(
 			UserId: "user123",
@@ -243,7 +260,8 @@ public class CreateOrderCommandHandlerTests
 			.UseInMemoryDatabase(Guid.NewGuid().ToString())
 			.Options;
 		var db = new AppDbContext(options);
-		var handler = new CreateOrderCommandHandler(db);
+		var mockPublisher = CreateMockPublisher();
+		var handler = new CreateOrderCommandHandler(db, mockPublisher);
 
 		var command = new CreateOrderCommand(
 			UserId: "user123",
@@ -280,7 +298,8 @@ public class CreateOrderCommandHandlerTests
 			.UseInMemoryDatabase(Guid.NewGuid().ToString())
 			.Options;
 		var db = new AppDbContext(options);
-		var handler = new CreateOrderCommandHandler(db);
+		var mockPublisher = CreateMockPublisher();
+		var handler = new CreateOrderCommandHandler(db, mockPublisher);
 
 		var command = new CreateOrderCommand(
 			UserId: "user123",
@@ -315,7 +334,8 @@ public class CreateOrderCommandHandlerTests
 			.UseInMemoryDatabase(Guid.NewGuid().ToString())
 			.Options;
 		var db = new AppDbContext(options);
-		var handler = new CreateOrderCommandHandler(db);
+		var mockPublisher = CreateMockPublisher();
+		var handler = new CreateOrderCommandHandler(db, mockPublisher);
 
 		var productId = Guid.NewGuid();
 		var command = new CreateOrderCommand(
