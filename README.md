@@ -17,6 +17,7 @@ graph TB
         KC[Keycloak<br/>Port: 8080<br/>Realm: copilotdemoapp]
         PGA[pgAdmin<br/>Database UI]
         AZ[Azure Storage<br/>Emulator: Azurite<br/>Blobs: product-images]
+        SB[Azure Service Bus<br/>Emulator<br/>Queue: orders]
     end
 
     subgraph "Application Services"
@@ -27,6 +28,7 @@ graph TB
     AppHost -.manages.-> PG
     AppHost -.manages.-> KC
     AppHost -.manages.-> AZ
+    AppHost -.manages.-> SB
     AppHost -.manages.-> API
     AppHost -.manages.-> FE
 
@@ -34,8 +36,10 @@ graph TB
     API -->|WaitFor| PG
     API -->|WaitFor| KC
     API -->|WaitFor| AZ
+    API -->|WaitFor| SB
     API -->|Validates JWT| KC
     API -->|Stores Images| AZ
+    API -->|Publishes Events| SB
     FE -->|WaitFor + Proxies /api| API
     FE -->|Authenticates via OIDC| KC
     API -->|Queries| PG
@@ -44,6 +48,7 @@ graph TB
     style PG fill:#336791
     style KC fill:#4d4d4d
     style AZ fill:#0078d4
+    style SB fill:#0078d4
     style API fill:#512bd4
     style FE fill:#61dafb
 ```
@@ -52,8 +57,9 @@ graph TB
 
 - **PostgreSQL**: Database server with persistent volume and pgAdmin UI
 - **Azure Storage Emulator (Azurite)**: Blob storage for product images with local emulation
+- **Azure Service Bus Emulator**: Message queue for event-driven architecture with "orders" queue
 - **Keycloak**: Identity and Access Management server (port 8080) with preconfigured realm
-- **Server**: ASP.NET Core Web API that waits for database, blob storage, and Keycloak to be ready
+- **Server**: ASP.NET Core Web API that waits for database, blob storage, Service Bus, and Keycloak to be ready
 - **Frontend**: React SPA that waits for the server and proxies API requests
 
 ### Authentication Flow
@@ -78,6 +84,7 @@ graph TB
 **Key Resources:**
 
 - PostgreSQL database with data volume
+- Azure Service Bus emulator with "orders" queue for event messaging
 - Azure Storage emulator (Azurite) with blob container for product images
 - Keycloak server with realm import from [copilotdemoapp-realm.json](CopilotDemoApp.AppHost/copilotdemoapp-realm.json)
 - ASP.NET Core API with health checks
@@ -93,9 +100,19 @@ ASP.NET Core Web API using Minimal APIs and vertical slice architecture. Impleme
   - Product images stored in Azure Blob Storage (local Azurite emulator)
   - Admin-only image upload with validation (JPEG/PNG/WebP, max 5MB)
   - Automatic old image deletion when uploading new images
+  - Order creation publishes `OrderCreatedEvent` to Azure Service Bus queue
+  - Event-driven architecture with best-effort message delivery
+  - Events include order summary (excludes sensitive payment data)
+- **Messaging Infrastructure**: Azure Service Bus integration for asynchronous event processing
+  - Generic `MessageEnvelope<T>` pattern for consistent message structure
+  - OpenTelemetry tracing for message publishing operations
+  - Message publisher abstraction for testability
 - **Order Management**: User-specific order creation and retrieval
 - **Authentication**: Keycloak JWT Bearer authentication with role-based authorization
-- **Database**: Entity Framework Core with PostgreSQL and auto-applied migrations
+- **Database**: Entity Framework , functional types, and messaging abstractions
+  - `Messages/` - Message envelopes and event types (`OrderCreatedEvent`)
+  - `IOrderMessagePublisher` - Abstraction for publishing order events
+  - `OrderMessagePublisher` - Azure Service Bus implementationand auto-applied migrations
 - **Observability**: OpenTelemetry integration (metrics, traces, logs)
 - **Patterns**: Railway-Oriented Programming with `Result<T>`, `Option<T>`, and `Error` types
 
@@ -268,7 +285,41 @@ Endpoints are registered via static extension methods following the pattern:
 public static IEndpointRouteBuilder Map{Feature}Endpoints(this IEndpointRouteBuilder app)
 ```
 
-Program.cs calls these methods (e.g., `app.MapProductEndpoints()`) to register all endpoints for each feature. See [ProductEndpoints.cs](CopilotDemoApp.Server/Features/Product/ProductEndpoints.cs) for examples.
+Program.cs calls these methods (e.g., `app.MapPro
+
+### Event-Driven Messaging with Azure Service Bus
+
+The application uses Azure Service Bus for asynchronous event publishing:
+
+#### Message Envelope Pattern
+
+All messages use a generic `MessageEnvelope<TPayload>` wrapper that provides:
+
+- **MessageId**: Unique identifier (Guid) for each message
+- **Timestamp**: UTC timestamp when message was created
+- **MessageType**: String identifier of the payload type
+- **Payload**: The actual event data (e.g., `OrderCreatedEvent`)
+- **CorrelationId**: Optional Guid for distributed tracing correlation
+
+#### Order Events
+
+When an order is created, the system publishes an `OrderCreatedEvent` containing:
+
+- Order ID, user information, order date, and total amount
+- Shipping address details
+- Line items with product information (ID, name, quantity, price)
+- **Security**: Payment card details are excluded from messages
+
+#### Implementation
+Azure Service Bus SDK 7.20.1**: Message queue client with OpenTelemetry integration
+- **
+- **Publisher Interface**: `IOrderMessagePublisher` for testability and abstraction
+- **Service Bus Client**: Injected via Aspire's `AddAzureServiceBusClient`
+- **Error Handling**: Best-effort delivery - order creation succeeds even if message publishing fails
+- **Observability**: Automatic OpenTelemetry tracing via `Azure.Messaging.ServiceBus` activity source
+- **Queue**: Messages published to the "orders" queue
+
+Messages are serialized as JSON with camelCase naming for interoperability.ductEndpoints()`) to register all endpoints for each feature. See [ProductEndpoints.cs](CopilotDemoApp.Server/Features/Product/ProductEndpoints.cs) for examples.
 
 ### Keycloak JWT Authentication
 
@@ -278,7 +329,8 @@ The server validates JWT Bearer tokens from Keycloak with:
 - **Role Extraction**: Roles from `realm_access.roles` mapped to ASP.NET Core role claims
 - **Authorization Policies**:
   - `AdminOnly`: Requires `admin` role
-  - `UserAccess`: Requires `admin` OR `user` role
+  - Azure Service Bus Emulator**: Local message queue emulation for event-driven architecture
+- **`UserAccess`: Requires `admin` OR `user` role
 
 ### Code Conventions
 
