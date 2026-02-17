@@ -1,7 +1,7 @@
 using CopilotDemoApp.Server.Database;
 using CopilotDemoApp.Server.Features.Order;
 using CopilotDemoApp.Server.Shared;
-using CopilotDemoApp.Server.Shared.Messages;
+using CopilotDemoApp.Shared.Messages;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
 

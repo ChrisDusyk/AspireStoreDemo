@@ -1,4 +1,4 @@
-using CopilotDemoApp.Server.Shared.Messages;
+using CopilotDemoApp.Shared.Messages;
 
 namespace CopilotDemoApp.Server.Shared;
 

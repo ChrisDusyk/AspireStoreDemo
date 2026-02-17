@@ -8,6 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\CopilotDemoApp.Server\CopilotDemoApp.Server.csproj" />
+    <ProjectReference Include="..\CopilotDemoApp.Worker\CopilotDemoApp.Worker.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.Azure.ServiceBus" />

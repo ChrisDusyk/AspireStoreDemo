@@ -1,4 +1,4 @@
-namespace CopilotDemoApp.Server.Shared.Messages;
+namespace CopilotDemoApp.Shared.Messages;
 
 /// <summary>
 /// Event published when a new order is successfully created.

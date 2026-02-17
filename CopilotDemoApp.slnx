@@ -2,6 +2,8 @@
   <Project Path="CopilotDemoApp.AppHost/CopilotDemoApp.AppHost.csproj" />
   <Project Path="CopilotDemoApp.Server.Tests/CopilotDemoApp.Server.Tests.csproj" />
   <Project Path="CopilotDemoApp.Server/CopilotDemoApp.Server.csproj" />
+  <Project Path="CopilotDemoApp.Shared/CopilotDemoApp.Shared.csproj" />
+  <Project Path="CopilotDemoApp.Worker/CopilotDemoApp.Worker.csproj" />
   <Project Path="frontend/frontend.esproj">
     <Build />
   </Project>

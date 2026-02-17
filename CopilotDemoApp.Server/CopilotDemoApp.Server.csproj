@@ -22,4 +22,7 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CopilotDemoApp.Shared\CopilotDemoApp.Shared.csproj" />
+  </ItemGroup>
 </Project>

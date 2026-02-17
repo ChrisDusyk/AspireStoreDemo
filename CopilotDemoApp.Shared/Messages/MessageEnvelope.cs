@@ -1,4 +1,4 @@
-namespace CopilotDemoApp.Server.Shared.Messages;
+namespace CopilotDemoApp.Shared.Messages;
 
 /// <summary>
 /// Generic message envelope for wrapping domain events and messages with metadata.

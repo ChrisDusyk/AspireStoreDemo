@@ -40,6 +40,9 @@ var server = builder.AddProject<Projects.CopilotDemoApp_Server>("server")
 	.WithHttpHealthCheck("/health")
 	.WithExternalHttpEndpoints();
 
+var worker = builder.AddProject<Projects.CopilotDemoApp_Worker>("worker")
+	.WithReference(serviceBus).WaitFor(serviceBus);
+
 var webfrontend = builder.AddViteApp("webfrontend", "../frontend")
 	.WithEndpoint("http", (endpointAnnotation) =>
 	{

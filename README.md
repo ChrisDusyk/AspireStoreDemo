@@ -22,6 +22,7 @@ graph TB
 
     subgraph "Application Services"
         API[Server<br/>ASP.NET Core API<br/>CQRS + EF Core<br/>/health endpoint]
+        WK[Worker<br/>Background Service<br/>Processes Orders Queue]
         FE[Frontend<br/>React + Vite<br/>Port: 5173]
     end
 
@@ -30,6 +31,7 @@ graph TB
     AppHost -.manages.-> AZ
     AppHost -.manages.-> SB
     AppHost -.manages.-> API
+    AppHost -.manages.-> WK
     AppHost -.manages.-> FE
 
     PG --> PGA
@@ -40,6 +42,8 @@ graph TB
     API -->|Validates JWT| KC
     API -->|Stores Images| AZ
     API -->|Publishes Events| SB
+    WK -->|WaitFor| SB
+    WK -->|Consumes Events| SB
     FE -->|WaitFor + Proxies /api| API
     FE -->|Authenticates via OIDC| KC
     API -->|Queries| PG
@@ -50,6 +54,7 @@ graph TB
     style AZ fill:#0078d4
     style SB fill:#0078d4
     style API fill:#512bd4
+    style WK fill:#512bd4
     style FE fill:#61dafb
 ```
 
@@ -60,6 +65,7 @@ graph TB
 - **Azure Service Bus Emulator**: Message queue for event-driven architecture with "orders" queue
 - **Keycloak**: Identity and Access Management server (port 8080) with preconfigured realm
 - **Server**: ASP.NET Core Web API that waits for database, blob storage, Service Bus, and Keycloak to be ready
+- **Worker**: Background service that waits for Service Bus to be ready and consumes order events
 - **Frontend**: React SPA that waits for the server and proxies API requests
 
 ### Authentication Flow
@@ -90,6 +96,22 @@ graph TB
 - ASP.NET Core API with health checks
 - Vite-based React frontend
 
+### [CopilotDemoApp.Shared](CopilotDemoApp.Shared)
+
+Shared .NET 10 class library containing message contracts and event types used across multiple projects.
+
+**Key Types:**
+
+- `MessageEnvelope<TPayload>`: Generic wrapper for domain events with metadata (MessageId, Timestamp, CorrelationId)
+- `OrderCreatedEvent`: Event published when new orders are created
+- `ShippingAddressInfo`: Shipping address data for order events
+- `OrderLineItemInfo`: Product line item data for order events
+
+**Referenced By:**
+
+- **Server**: For publishing order events to Azure Service Bus
+- **Worker**: For consuming and deserializing order events from the queue
+
 ### [CopilotDemoApp.Server](CopilotDemoApp.Server)
 
 ASP.NET Core Web API using Minimal APIs and vertical slice architecture. Implements CQRS patterns with Entity Framework Core and PostgreSQL.
@@ -100,19 +122,16 @@ ASP.NET Core Web API using Minimal APIs and vertical slice architecture. Impleme
   - Product images stored in Azure Blob Storage (local Azurite emulator)
   - Admin-only image upload with validation (JPEG/PNG/WebP, max 5MB)
   - Automatic old image deletion when uploading new images
+- **Order Management**: User-specific order creation and retrieval
   - Order creation publishes `OrderCreatedEvent` to Azure Service Bus queue
   - Event-driven architecture with best-effort message delivery
   - Events include order summary (excludes sensitive payment data)
 - **Messaging Infrastructure**: Azure Service Bus integration for asynchronous event processing
-  - Generic `MessageEnvelope<T>` pattern for consistent message structure
+  - Generic `MessageEnvelope<T>` pattern (via CopilotDemoApp.Shared)
   - OpenTelemetry tracing for message publishing operations
   - Message publisher abstraction for testability
-- **Order Management**: User-specific order creation and retrieval
 - **Authentication**: Keycloak JWT Bearer authentication with role-based authorization
-- **Database**: Entity Framework , functional types, and messaging abstractions
-  - `Messages/` - Message envelopes and event types (`OrderCreatedEvent`)
-  - `IOrderMessagePublisher` - Abstraction for publishing order events
-  - `OrderMessagePublisher` - Azure Service Bus implementationand auto-applied migrations
+- **Database**: Entity Framework Core with PostgreSQL and auto-applied migrations
 - **Observability**: OpenTelemetry integration (metrics, traces, logs)
 - **Patterns**: Railway-Oriented Programming with `Result<T>`, `Option<T>`, and `Error` types
 
@@ -120,7 +139,26 @@ ASP.NET Core Web API using Minimal APIs and vertical slice architecture. Impleme
 
 - `Features/` - Organized by domain (Product, Order) with endpoints, queries, commands, and handlers
 - `Database/` - EF Core DbContext and migrations
-- `Shared/` - CQRS infrastructure and functional types
+- `Shared/` - CQRS infrastructure, functional types, and messaging abstractions
+
+### [CopilotDemoApp.Worker](CopilotDemoApp.Worker)
+
+Background worker service (.NET 10) that processes order events from Azure Service Bus.
+
+**Features:**
+
+- **Message Processing**: Consumes `OrderCreatedEvent` messages from the "orders" queue
+- **Structured Logging**: Logs order details with correlation IDs and message metadata
+- **Error Handling**: Dead-letter queue for failed messages (deserialization errors, processing failures)
+- **Observability**: OpenTelemetry instrumentation for Service Bus operations
+- **Resilience**: Automatic message lock renewal and graceful shutdown
+
+**Architecture:**
+
+- Implements `BackgroundService` pattern for long-running operations
+- Uses `ServiceBusProcessor` for automatic message handling
+- Configured for single concurrent message processing (MaxConcurrentCalls = 1)
+- Messages deserialized from JSON using `MessageEnvelope<OrderCreatedEvent>` from CopilotDemoApp.Shared
 
 ### [CopilotDemoApp.Server.Tests](CopilotDemoApp.Server.Tests)
 

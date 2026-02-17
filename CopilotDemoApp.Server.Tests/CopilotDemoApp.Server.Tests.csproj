@@ -27,5 +27,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CopilotDemoApp.Server\CopilotDemoApp.Server.csproj" />
+    <ProjectReference Include="..\CopilotDemoApp.Shared\CopilotDemoApp.Shared.csproj" />
   </ItemGroup>
 </Project>

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using CopilotDemoApp.Server.Shared;
-using CopilotDemoApp.Server.Shared.Messages;
+using CopilotDemoApp.Shared.Messages;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
