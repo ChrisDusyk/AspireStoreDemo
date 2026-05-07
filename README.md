@@ -85,7 +85,7 @@ graph TB
 
 ### [CopilotDemoApp.AppHost](CopilotDemoApp.AppHost)
 
-.NET Aspire orchestration host that defines and manages all application resources. Built with .NET 10 and Aspire SDK 13.1.0.
+.NET Aspire orchestration host that defines and manages all application resources. Built with .NET 10 and Aspire AppHost SDK 13.3.0.
 
 **Key Resources:**
 
@@ -186,7 +186,7 @@ React 19 + Vite 7 single-page application with TypeScript and Tailwind CSS v4.
 ## Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-- [Node.js 18+](https://nodejs.org/) (for frontend development)
+- [Node.js 20.19+ or 22.12+](https://nodejs.org/) (for Vite 7 frontend development)
 - [Aspire CLI](https://learn.microsoft.com/dotnet/aspire/fundamentals/setup-tooling) (included with .NET SDK)
 - Docker Desktop (for PostgreSQL and Keycloak containers)
 
@@ -323,7 +323,7 @@ Endpoints are registered via static extension methods following the pattern:
 public static IEndpointRouteBuilder Map{Feature}Endpoints(this IEndpointRouteBuilder app)
 ```
 
-Program.cs calls these methods (e.g., `app.MapPro
+Program.cs calls these methods (e.g., `app.MapProductEndpoints()` and `app.MapOrderEndpoints()`) to register all endpoints for each feature. See [ProductEndpoints.cs](CopilotDemoApp.Server/Features/Product/ProductEndpoints.cs) for examples.
 
 ### Event-Driven Messaging with Azure Service Bus
 
@@ -349,15 +349,14 @@ When an order is created, the system publishes an `OrderCreatedEvent` containing
 - **Security**: Payment card details are excluded from messages
 
 #### Implementation
-Azure Service Bus SDK 7.20.1**: Message queue client with OpenTelemetry integration
-- **
+
 - **Publisher Interface**: `IOrderMessagePublisher` for testability and abstraction
 - **Service Bus Client**: Injected via Aspire's `AddAzureServiceBusClient`
 - **Error Handling**: Best-effort delivery - order creation succeeds even if message publishing fails
 - **Observability**: Automatic OpenTelemetry tracing via `Azure.Messaging.ServiceBus` activity source
 - **Queue**: Messages published to the "orders" queue
 
-Messages are serialized as JSON with camelCase naming for interoperability.ductEndpoints()`) to register all endpoints for each feature. See [ProductEndpoints.cs](CopilotDemoApp.Server/Features/Product/ProductEndpoints.cs) for examples.
+Messages are serialized as JSON with camelCase naming for interoperability.
 
 ### Keycloak JWT Authentication
 
@@ -367,8 +366,7 @@ The server validates JWT Bearer tokens from Keycloak with:
 - **Role Extraction**: Roles from `realm_access.roles` mapped to ASP.NET Core role claims
 - **Authorization Policies**:
   - `AdminOnly`: Requires `admin` role
-  - Azure Service Bus Emulator**: Local message queue emulation for event-driven architecture
-- **`UserAccess`: Requires `admin` OR `user` role
+  - `UserAccess`: Requires `admin` OR `user` role
 
 ### Code Conventions
 
@@ -383,22 +381,25 @@ For detailed coding standards, patterns, and Aspire guidance, see [AGENTS.md](AG
 
 ### Backend
 
-- **.NET 10**: Target framework for all .NET projects
-- **Aspire 13.1.0**: Orchestration and service discovery
-- **ASP.NET Core**: Minimal APIs for HTTP endpoints
-- **Entity Framework Core 10**: ORM with PostgreSQL provider (Npgsql)
-- **Keycloak**: Open-source identity and access management
-- **OpenTelemetry**: Observability (metrics, traces, logs)
-- **xUnit v3**: Testing framework
+- **.NET 10 (`net10.0`)**: Target framework for all .NET projects
+- **Aspire AppHost SDK 13.3.0**: Orchestration and service discovery
+- **Aspire integrations 13.3.0**: Azure Service Bus, Azure Storage, JavaScript hosting, PostgreSQL, and Npgsql EF Core
+- **Aspire Keycloak packages 13.3.0-preview.1.26256.5**: Hosting and authentication integration
+- **ASP.NET Core OpenAPI 10.0.7**: API metadata and OpenAPI support
+- **Entity Framework Core 10.0.3/10.0.7**: PostgreSQL runtime integration + InMemory test provider
+- **OpenTelemetry 1.15.x**: OTLP export and ASP.NET Core/HTTP/runtime instrumentation
+- **xUnit v3 3.2.2 + runner 3.1.5**: Testing framework
+- **Microsoft.NET.Test.Sdk 18.5.1** and **NSubstitute 5.3.0**: Test infrastructure
 
 ### Frontend
 
-- **React 19.2.1**: UI library
-- **Vite 7.2.6**: Build tool and dev server
-- **TypeScript 5.9**: Type-safe JavaScript
+- **React 19.2.4**: UI library
+- **Vite 7.3.1**: Build tool and dev server
+- **TypeScript 5.9.3**: Type-safe JavaScript
 - **Tailwind CSS 4.1.18**: Utility-first CSS framework
-- **react-oidc-context**: OpenID Connect authentication
-- **React Router**: Client-side routing
+- **react-oidc-context 3.3.0 + oidc-client-ts 3.4.1**: OpenID Connect authentication
+- **React Router DOM 6.30.3**: Client-side routing
+- **OpenTelemetry Web SDK 2.5.0 + instrumentation 0.211.0**: Browser telemetry
 
 ### Infrastructure
 
